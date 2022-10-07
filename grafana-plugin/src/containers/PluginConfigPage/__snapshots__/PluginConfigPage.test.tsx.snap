@@ -1,0 +1,286 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ConfigurationForm If onCallApiUrl is not set in the plugin's meta jsonData, and ONCALL_API_URL is passed in process.env, and there is an error calling selfHostedInstallPlugin, it sets an error message 1`] = `
+[
+  <legend
+    className="css-xim8hk"
+  >
+    Configure Grafana OnCall
+  </legend>,
+  <p>
+    This page will help you configure the OnCall plugin 👋
+  </p>,
+  <pre>
+    <span
+      className="root text text--undefined text--medium"
+    >
+      ohhh nooo an error msg from self hosted install plugin
+    </span>
+  </pre>,
+  <button
+    className="css-mk7eo3-button"
+    onClick={[Function]}
+    type="button"
+  >
+    <span
+      className="css-1mhnkuh"
+    >
+      Remove current configuration
+    </span>
+  </button>,
+]
+`;
+
+exports[`ConfigurationForm If onCallApiUrl is not set in the plugin's meta jsonData, or in process.env, checkIfPluginIsConnected is not called, and the configuration form is shown 1`] = `
+[
+  <legend
+    className="css-xim8hk"
+  >
+    Configure Grafana OnCall
+  </legend>,
+  <p>
+    This page will help you configure the OnCall plugin 👋
+  </p>,
+  <form
+    className="css-xs0vux"
+    onSubmit={[Function]}
+  >
+    <div
+      className="info-block"
+    >
+      <p>
+        1. Launch the OnCall backend
+      </p>
+      <span
+        className="root text text--secondary text--medium"
+      >
+        Run hobby, dev or production backend. See
+         
+        <a
+          href="https://github.com/grafana/oncall#getting-started"
+          rel="noreferrer"
+          target="_blank"
+        >
+          <span
+            className="root text text--link text--medium"
+          >
+            here
+          </span>
+        </a>
+         
+        on how to get started.
+      </span>
+    </div>
+    <div
+      className="info-block"
+    >
+      <p>
+        2. Let us know the base URL of your OnCall API
+      </p>
+      <span
+        className="root text text--secondary text--medium"
+      >
+        The OnCall backend must be reachable from your Grafana installation. Some examples are:
+        <br />
+        - http://host.docker.internal:8080
+        <br />
+        - http://localhost:8080
+      </span>
+    </div>
+    <div
+      className="css-8e5b3"
+    >
+      <div
+        className="css-jt4xma-Label"
+      >
+        <label>
+          <div
+            className="css-xhqy0o"
+          >
+            OnCall backend URL
+          </div>
+        </label>
+      </div>
+      <div>
+        <div
+          className="css-xcstkt-input-wrapper"
+          data-testid="input-wrapper"
+        >
+          <div
+            className="css-1w5c5dq-input-inputWrapper"
+          >
+            <input
+              className="css-1wdli31-input-input"
+              data-testid="onCallApiUrl"
+              name="onCallApiUrl"
+              onBlur={[Function]}
+              onChange={[Function]}
+              style={
+                {
+                  "paddingLeft": undefined,
+                  "paddingRight": undefined,
+                }
+              }
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+    <button
+      className="css-1sara2j-button"
+      disabled={false}
+      type="submit"
+    >
+      <span
+        className="css-1mhnkuh"
+      >
+        Connect
+      </span>
+    </button>
+  </form>,
+]
+`;
+
+exports[`ConfigurationForm If onCallApiUrl is set, and checkIfPluginIsConnected returns an error, it sets an error message 1`] = `
+[
+  <legend
+    className="css-xim8hk"
+  >
+    Configure Grafana OnCall
+  </legend>,
+  <p>
+    This page will help you configure the OnCall plugin 👋
+  </p>,
+  <pre>
+    <span
+      className="root text text--undefined text--medium"
+    >
+      ohhh nooo a plugin connection error
+    </span>
+  </pre>,
+  <button
+    className="css-mk7eo3-button"
+    onClick={[Function]}
+    type="button"
+  >
+    <span
+      className="css-1mhnkuh"
+    >
+      Remove current configuration
+    </span>
+  </button>,
+]
+`;
+
+exports[`ConfigurationForm OnCallApiUrl is set, and syncDataWithOnCall does not return an error. It displays properly the plugin connected items based on the license - License: OpenSource 1`] = `
+[
+  <legend
+    className="css-xim8hk"
+  >
+    Configure Grafana OnCall
+  </legend>,
+  <p>
+    Plugin is connected! Check Grafana OnCall 👈👈👈 
+    <img
+      alt="Grafana OnCall Logo"
+      src={
+        {
+          "getCacheKey": [Function],
+          "process": [Function],
+        }
+      }
+      width={18}
+    />
+  </p>,
+  <pre>
+    <span
+      className="root text text--undefined text--medium"
+    >
+      Connected to OnCall (v1.2.3, OpenSource)
+    </span>
+  </pre>,
+  <button
+    className="css-mk7eo3-button"
+    onClick={[Function]}
+    type="button"
+  >
+    <span
+      className="css-1mhnkuh"
+    >
+      Remove current configuration
+    </span>
+  </button>,
+]
+`;
+
+exports[`ConfigurationForm OnCallApiUrl is set, and syncDataWithOnCall does not return an error. It displays properly the plugin connected items based on the license - License: some-other-license 1`] = `
+[
+  <legend
+    className="css-xim8hk"
+  >
+    Configure Grafana OnCall
+  </legend>,
+  <p>
+    Plugin is connected! Check Grafana OnCall 👈👈👈 
+    <img
+      alt="Grafana OnCall Logo"
+      src={
+        {
+          "getCacheKey": [Function],
+          "process": [Function],
+        }
+      }
+      width={18}
+    />
+  </p>,
+  <pre>
+    <span
+      className="root text text--undefined text--medium"
+    >
+      Connected to OnCall (v1.2.3, some-other-license)
+    </span>
+  </pre>,
+  <div
+    className="css-jt4xma-Label"
+  >
+    <label>
+      <div
+        className="css-xhqy0o"
+      >
+        This is a cloud managed configuration.
+      </div>
+    </label>
+  </div>,
+]
+`;
+
+exports[`ConfigurationForm OnCallApiUrl is set, and syncDataWithOnCall returns an error 1`] = `
+[
+  <legend
+    className="css-xim8hk"
+  >
+    Configure Grafana OnCall
+  </legend>,
+  <p>
+    This page will help you configure the OnCall plugin 👋
+  </p>,
+  <pre>
+    <span
+      className="root text text--undefined text--medium"
+    >
+      ohhh noooo a sync issue
+    </span>
+  </pre>,
+  <button
+    className="css-1sara2j-button"
+    onClick={[Function]}
+    type="button"
+  >
+    <span
+      className="css-1mhnkuh"
+    >
+      Retry Sync
+    </span>
+  </button>,
+]
+`;

@@ -1,6 +1,8 @@
+import type { Config } from 'jest';
+
 const esModules = ['react-colorful', 'uuid', 'ol'].join('|');
 
-module.exports = {
+const config: Config = {
   testEnvironment: 'jsdom',
 
   moduleDirectories: ['node_modules', 'src'],
@@ -14,7 +16,12 @@ module.exports = {
     'jest/outgoingWebhooksStub': '<rootDir>/src/jest/outgoingWebhooksStub.ts',
     '^jest$': '<rootDir>/src/jest',
     '^.+\\.(css|scss)$': '<rootDir>/src/jest/styleMock.ts',
+    '^.+\\.(ts|tsx)$': 'ts-jest',
     '^lodash-es$': 'lodash',
-    "^.+\\.svg$": "<rootDir>/src/jest/svgTransform.ts" 
+    '^.+\\.svg$': '<rootDir>/src/jest/svgTransform.ts',
   },
+
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
 };
+
+export default config;

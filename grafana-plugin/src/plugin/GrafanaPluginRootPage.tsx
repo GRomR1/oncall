@@ -1,6 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { FC, PropsWithChildren, useCallback, useEffect, useMemo, useState } from 'react';
 
-import { AppRootProps } from '@grafana/data';
 import { locationService } from '@grafana/runtime';
 import { Button, HorizontalGroup, LinkButton } from '@grafana/ui';
 import classnames from 'classnames';
@@ -12,13 +11,14 @@ import localeData from 'dayjs/plugin/localeData';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
 import weekday from 'dayjs/plugin/weekday';
-import 'interceptors';
 import { observer, Provider } from 'mobx-react';
 import Header from 'navbar/Header/Header';
 import LegacyNavTabsBar from 'navbar/LegacyNavTabsBar';
+import { AppRootProps } from 'types';
 
 import DefaultPageLayout from 'containers/DefaultPageLayout/DefaultPageLayout';
 import logo from 'img/logo.svg';
+import 'interceptors';
 import { pages } from 'pages';
 import { routes } from 'pages/routes';
 import { rootStore } from 'state';
@@ -45,54 +45,44 @@ export const GrafanaPluginRootPage = (props: AppRootProps) => (
   </Provider>
 );
 
+type PluginSetupWrapperProps = PropsWithChildren & {
+  text: string;
+};
+const PluginSetupWrapper: FC<PluginSetupWrapperProps> = ({ text, children }) => (
+  <div className="spin">
+    <img alt="Grafana OnCall Logo" src={logo} />
+    <div className="spin-text">{text}</div>
+    {children}
+  </div>
+);
+
 const RootWithLoader = observer((props: AppRootProps) => {
   const store = useStore();
 
+  const setupPlugin = useCallback(() => store.setupPlugin(props.meta), [props.meta]);
+
   useEffect(() => {
-    store.setupPlugin(props.meta);
+    setupPlugin();
   }, []);
 
   if (store.appLoading) {
-    let text = 'Initializing plugin...';
+    return <PluginSetupWrapper text="Initializing plugin..." />;
+  }
 
-    if (!store.pluginIsInitialized) {
-      text = '🚫 Plugin has not been initialized';
-    } else if (!store.correctProvisioningForInstallation) {
-      text = '🚫 Plugin could not be initialized due to provisioning error';
-    } else if (!store.correctRoleForInstallation) {
-      text = '🚫 Admin must sign on to setup OnCall before a Viewer can use it';
-    } else if (!store.signupAllowedForPlugin) {
-      text = '🚫 OnCall has temporarily disabled signup of new users. Please try again later.';
-    } else if (store.initializationError) {
-      text = `🚫 Error during initialization: ${store.initializationError}`;
-    } else if (store.isUserAnonymous) {
-      text = '😞 Unfortunately Grafana OnCall is available for authorized users only, please sign in to proceed.';
-    } else if (store.retrySync) {
-      text = `🚫 OnCall took too many tries to synchronize... Are background workers up and running?`;
-    }
-
+  if (store.initializationError) {
     return (
-      <div className="spin">
-        <img alt="Grafana OnCall Logo" src={logo} />
-        <div className="spin-text">{text}</div>
-        {!store.pluginIsInitialized ||
-        !store.correctProvisioningForInstallation ||
-        store.initializationError ||
-        store.retrySync ? (
-          <div className="configure-plugin">
-            <HorizontalGroup>
-              <Button variant="primary" onClick={() => store.setupPlugin(props.meta)} size="sm">
-                Retry
-              </Button>
-              <LinkButton href={`/plugins/grafana-oncall-app?page=configuration`} variant="primary" size="sm">
-                Configure Plugin
-              </LinkButton>
-            </HorizontalGroup>
-          </div>
-        ) : (
-          <></>
-        )}
-      </div>
+      <PluginSetupWrapper text={`🚫 Error during initialization: ${store.initializationError}`}>
+        <div className="configure-plugin">
+          <HorizontalGroup>
+            <Button variant="primary" onClick={setupPlugin} size="sm">
+              Retry
+            </Button>
+            <LinkButton href={`/plugins/grafana-oncall-app?page=configuration`} variant="primary" size="sm">
+              Configure Plugin
+            </LinkButton>
+          </HorizontalGroup>
+        </div>
+      </PluginSetupWrapper>
     );
   }
 
