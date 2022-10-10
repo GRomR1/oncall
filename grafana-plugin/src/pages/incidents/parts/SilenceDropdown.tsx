@@ -33,7 +33,7 @@ const SilenceDropdown = observer((props: SilenceDropdownProps) => {
   const silenceOptions = alertGroupStore.silenceOptions || [];
 
   return (
-    <WithPermissionControl key="silence" userAction={UserAction.UpdateIncidents}>
+    <WithPermissionControl key="silence" userAction={UserAction.AlertGroupsWrite}>
       <ButtonCascader
         // @ts-ignore
         variant="secondary"

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 
 import { AppRootProps } from '@grafana/data';
-import { Button, HorizontalGroup, LinkButton, VerticalGroup } from '@grafana/ui';
+import { Button, HorizontalGroup, LinkButton } from '@grafana/ui';
 import dayjs from 'dayjs';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
@@ -110,6 +110,7 @@ export const Root = observer((props: AppRootProps) => {
 
   const store = useStore();
   const { backendLicense } = store;
+  const { user: grafanaUser } = window.grafanaBootData;
 
   useEffect(() => {
     store.updateBasicData();
@@ -136,7 +137,7 @@ export const Root = observer((props: AppRootProps) => {
         pages,
         path: pathWithoutLeadingSlash,
         meta,
-        grafanaUser: window.grafanaBootData.user,
+        grafanaUser,
         enableLiveSettings: store.hasFeature(AppFeature.LiveSettings),
         enableCloudPage: store.hasFeature(AppFeature.CloudConnection),
         enableNewSchedulesPage: store.hasFeature(AppFeature.WebSchedules),
@@ -150,12 +151,20 @@ export const Root = observer((props: AppRootProps) => {
     onNavChanged(navModel);
   }, [navModel, onNavChanged]);
 
-  const Page = pages.find(({ id }) => id === page)?.component || pages[0].component;
+  const { action: pagePermissionAction, component: PageComponent } = pages.find(({ id }) => id === page) || pages[0];
+  const userHasAccess = pagePermissionAction ? !!grafanaUser.permissions[pagePermissionAction] : true;
 
   return (
     <DefaultPageLayout {...props}>
       <GrafanaTeamSelect currentPage={page} />
-      <Page {...props} path={pathWithoutLeadingSlash} />
+      {userHasAccess ? (
+        <PageComponent {...props} path={pathWithoutLeadingSlash} />
+      ) : (
+        <>
+          {/* TODO: what should be the behavior here? a redirect? if so, to what page? or maybe an unauthorized component? */}
+          <p>You don't have access!</p>
+        </>
+      )}
     </DefaultPageLayout>
   );
 });

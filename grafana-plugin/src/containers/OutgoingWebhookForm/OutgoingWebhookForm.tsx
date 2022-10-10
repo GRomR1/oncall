@@ -56,7 +56,7 @@ const OutgoingWebhookForm = observer((props: OutgoingWebhookFormProps) => {
     >
       <div className={cx('content')}>
         <GForm form={form} data={data} onSubmit={handleSubmit} />
-        <WithPermissionControl userAction={UserAction.UpdateCustomActions}>
+        <WithPermissionControl userAction={UserAction.OutgoingWebhooksWrite}>
           <Button form={form.name} type="submit">
             {id === 'new' ? 'Create' : 'Update'} Webhook
           </Button>

@@ -5,12 +5,10 @@ import { Button, Field, HorizontalGroup, Icon, Modal } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import moment from 'moment';
-import Emoji from 'react-emoji-render';
 
 import Text from 'components/Text/Text';
 import GSelect from 'containers/GSelect/GSelect';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
-import { AlertGroupStore } from 'models/alertgroup/alertgroup';
 import { Alert } from 'models/alertgroup/alertgroup.types';
 import { useStore } from 'state/useStore';
 import { UserAction } from 'state/userAction';
@@ -80,7 +78,7 @@ const AttachIncidentForm = observer((props: AttachIncidentFormProps) => {
         label="Incident to be attached with"
         description="Linking incidents together can help the team investigate the underlying issue."
       >
-        <WithPermissionControl userAction={UserAction.UpdateIncidents}>
+        <WithPermissionControl userAction={UserAction.AlertGroupsWrite}>
           <GSelect
             showSearch
             modelName="alertGroupStore"

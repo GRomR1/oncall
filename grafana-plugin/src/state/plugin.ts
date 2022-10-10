@@ -12,6 +12,7 @@ export async function createGrafanaToken() {
 
   return await getBackendSrv().post('/api/auth/keys', {
     name: 'OnCall',
+    // TODO: what to do about this role attribute?
     role: 'Admin',
     secondsToLive: null,
   });

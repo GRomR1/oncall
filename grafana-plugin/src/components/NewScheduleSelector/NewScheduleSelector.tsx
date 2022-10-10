@@ -1,6 +1,5 @@
 import React, { FC, useCallback, useState } from 'react';
 
-import { getLocationSrv } from '@grafana/runtime';
 import { Button, Drawer, HorizontalGroup, Icon, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 
@@ -54,7 +53,7 @@ const NewScheduleSelector: FC<NewScheduleSelectorProps> = (props) => {
                     <Text type="secondary">Configure rotations and shifts directly in Grafana On-Call</Text>
                   </VerticalGroup>
                 </HorizontalGroup>
-                <WithPermissionControl userAction={UserAction.UpdateSchedules}>
+                <WithPermissionControl userAction={UserAction.SchedulesWrite}>
                   <Button variant="primary" icon="plus" onClick={getCreateScheduleClickHandler(ScheduleType.API)}>
                     Create
                   </Button>

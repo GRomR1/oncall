@@ -123,7 +123,7 @@ const DefaultPageLayout: FC<DefaultPageLayoutProps> = observer((props) => {
         {Boolean(
           currentTeam &&
             currentUser &&
-            store.isUserActionAllowed(UserAction.UpdateOwnSettings) &&
+            store.isUserActionAllowed(UserAction.UserSettingsWrite) &&
             (!currentUser.verified_phone_number ||
               !currentUser.slack_user_identity ||
               currentUser.cloud_connection_status !== 3) &&

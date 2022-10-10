@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
 import { SelectableValue } from '@grafana/data';
-import { Button, HorizontalGroup, Modal, Select } from '@grafana/ui';
+import { Button, HorizontalGroup, Select } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 import Emoji from 'react-emoji-render';
@@ -90,7 +90,7 @@ const HeartbeatForm = observer(({ alertReceveChannelId, onUpdate }: HeartBeatMod
       </p>
       <p>
         <span>OnCall will issue an incident if no alert is received every</span>
-        <WithPermissionControl userAction={UserAction.UpdateAlertReceiveChannels}>
+        <WithPermissionControl userAction={UserAction.IntegrationsWrite}>
           <Select
             className={cx('select', 'timeout')}
             onChange={handleTimeoutChange}
@@ -125,7 +125,7 @@ const HeartbeatForm = observer(({ alertReceveChannelId, onUpdate }: HeartBeatMod
         </p>
       )}
       <HorizontalGroup className={cx('buttons')}>
-        <WithPermissionControl key="ok" userAction={UserAction.UpdateAlertReceiveChannels}>
+        <WithPermissionControl key="ok" userAction={UserAction.IntegrationsWrite}>
           <Button variant="primary" onClick={handleOkClick}>
             {heartbeat ? 'Save' : 'Create'}
           </Button>

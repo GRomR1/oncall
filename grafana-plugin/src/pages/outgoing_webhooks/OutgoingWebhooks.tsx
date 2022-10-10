@@ -124,9 +124,9 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
                     <PluginLink
                       partial
                       query={{ id: 'new' }}
-                      disabled={!store.isUserActionAllowed(UserAction.UpdateCustomActions)}
+                      disabled={!store.isUserActionAllowed(UserAction.OutgoingWebhooksWrite)}
                     >
-                      <WithPermissionControl userAction={UserAction.UpdateCustomActions}>
+                      <WithPermissionControl userAction={UserAction.OutgoingWebhooksWrite}>
                         <Button variant="primary" icon="plus">
                           Create
                         </Button>
@@ -155,12 +155,12 @@ class OutgoingWebhooks extends React.Component<OutgoingWebhooksProps, OutgoingWe
   renderActionButtons = (record: ActionDTO) => {
     return (
       <HorizontalGroup justify="flex-end">
-        <WithPermissionControl key={'edit_action'} userAction={UserAction.UpdateCustomActions}>
+        <WithPermissionControl key={'edit_action'} userAction={UserAction.OutgoingWebhooksWrite}>
           <Button onClick={this.getEditClickHandler(record.id)} fill="text">
             Edit
           </Button>
         </WithPermissionControl>
-        <WithPermissionControl key={'delete_action'} userAction={UserAction.UpdateCustomActions}>
+        <WithPermissionControl key={'delete_action'} userAction={UserAction.OutgoingWebhooksWrite}>
           <WithConfirm>
             <Button onClick={this.getDeleteClickHandler(record.id)} fill="text" variant="destructive">
               Delete

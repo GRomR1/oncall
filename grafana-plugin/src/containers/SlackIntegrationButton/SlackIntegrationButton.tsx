@@ -3,7 +3,6 @@ import React, { useCallback, useState } from 'react';
 import { Button, Modal } from '@grafana/ui';
 import { observer } from 'mobx-react';
 
-import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { useStore } from 'state/useStore';
@@ -36,7 +35,7 @@ const SlackIntegrationButton = observer((props: { className: string; disabled?: 
 
   if (store.teamStore.currentTeam?.slack_team_identity) {
     return (
-      <WithPermissionControl userAction={UserAction.UpdateIntegrations}>
+      <WithPermissionControl userAction={UserAction.IntegrationsWrite}>
         <WithConfirm title="Are you sure to delete this Slack Integration?">
           <Button
             variant="destructive"
@@ -55,7 +54,7 @@ const SlackIntegrationButton = observer((props: { className: string; disabled?: 
 
   return (
     <>
-      <WithPermissionControl userAction={UserAction.UpdateIntegrations}>
+      <WithPermissionControl userAction={UserAction.IntegrationsWrite}>
         <Button
           size="lg"
           variant="primary"

@@ -43,7 +43,7 @@ const SlackConnector = (props: SlackConnectorProps) => {
     <div className={cx('root')}>
       <HorizontalGroup wrap spacing="sm">
         <div className={cx('slack-channel-switch')}>
-          <WithPermissionControl userAction={UserAction.UpdateAlertReceiveChannels}>
+          <WithPermissionControl userAction={UserAction.IntegrationsWrite}>
             <InlineSwitch
               value={channelFilter.notify_in_slack}
               onChange={handleChannelFilterNotifyInSlackChange}
@@ -52,7 +52,7 @@ const SlackConnector = (props: SlackConnectorProps) => {
           </WithPermissionControl>
         </div>
         Post to slack channel
-        <WithPermissionControl userAction={UserAction.UpdateAlertReceiveChannels}>
+        <WithPermissionControl userAction={UserAction.IntegrationsWrite}>
           <GSelect
             showSearch
             allowClear
@@ -75,7 +75,7 @@ const SlackConnector = (props: SlackConnectorProps) => {
             <Text type="secondary">
               default slack channel is{' '}
               <Text strong>#{getSlackChannelName(store.teamStore.currentTeam?.slack_channel)}</Text>{' '}
-              <WithPermissionControl userAction={UserAction.UpdateAlertReceiveChannels}>
+              <WithPermissionControl userAction={UserAction.IntegrationsWrite}>
                 <Button
                   variant="primary"
                   size="sm"
@@ -96,9 +96,9 @@ const SlackConnector = (props: SlackConnectorProps) => {
               This is the default slack channel{' '}
               <PluginLink
                 query={{ page: 'chat-ops' }}
-                disabled={!store.isUserActionAllowed(UserAction.UpdateGeneralLogChannelId)}
+                disabled={!store.isUserActionAllowed(UserAction.ChatOpsWrite)}
               >
-                <WithPermissionControl userAction={UserAction.UpdateGeneralLogChannelId}>
+                <WithPermissionControl userAction={UserAction.ChatOpsWrite}>
                   <Button variant="primary" size="sm" fill="text">
                     Change in Slack settings
                   </Button>

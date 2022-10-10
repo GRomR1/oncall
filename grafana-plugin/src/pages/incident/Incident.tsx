@@ -232,7 +232,7 @@ class IncidentPage extends React.Component<IncidentPageProps, IncidentPageState>
                     #{incident.root_alert_group.inside_organization_number}{' '}
                     {incident.root_alert_group.render_for_web.title}
                   </PluginLink>{' '}
-                  <WithPermissionControl userAction={UserAction.UpdateIncidents}>
+                  <WithPermissionControl userAction={UserAction.AlertGroupsWrite}>
                     <Button variant="secondary" onClick={this.getUnattachClickHandler(incident.pk)} size="sm">
                       Unattach
                     </Button>
@@ -660,7 +660,7 @@ function AttachedIncidentsList({
               #{incident.inside_organization_number} {incident.render_for_web.title}
             </PluginLink>
             {/* <Emoji text={incident.alert_receive_channel?.verbal_name || ''} />*/}
-            <WithPermissionControl userAction={UserAction.UpdateIncidents}>
+            <WithPermissionControl userAction={UserAction.AlertGroupsWrite}>
               <Button size="sm" onClick={() => getUnattachClickHandler(incident.pk)} variant="secondary">
                 Unattach
               </Button>

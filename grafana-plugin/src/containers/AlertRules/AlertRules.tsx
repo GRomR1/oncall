@@ -208,7 +208,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
                 >
                   How to connect
                 </Button>
-                <WithPermissionControl userAction={UserAction.SendDemoAlert}>
+                <WithPermissionControl userAction={UserAction.IntegrationsWrite}>
                   <Button
                     variant="secondary"
                     size="sm"
@@ -222,7 +222,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
                     <Tooltip placement="top" content="Stop maintenance mode">
                       <Button
                         className="grey-button"
-                        disabled={!store.isUserActionAllowed(UserAction.UpdateMaintenances)}
+                        disabled={!store.isUserActionAllowed(UserAction.MaintenanceWrite)}
                         fill="text"
                         icon="square-shape"
                         onClick={this.handleStopMaintenance}
@@ -235,15 +235,15 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
                         maintenance_type: MaintenanceType.alert_receive_channel,
                         alert_receive_channel: alertReceiveChannel.id,
                       }}
-                      disabled={!store.isUserActionAllowed(UserAction.UpdateMaintenances)}
+                      disabled={!store.isUserActionAllowed(UserAction.MaintenanceWrite)}
                     >
-                      <WithPermissionControl userAction={UserAction.UpdateMaintenances}>
+                      <WithPermissionControl userAction={UserAction.MaintenanceWrite}>
                         <IconButton
                           name="pause"
                           size="sm"
                           tooltip="Setup maintenance mode"
                           tooltipPlacement="top"
-                          disabled={!store.isUserActionAllowed(UserAction.UpdateMaintenances)}
+                          disabled={!store.isUserActionAllowed(UserAction.MaintenanceWrite)}
                         />
                       </WithPermissionControl>
                     </PluginLink>
@@ -257,7 +257,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
                       onShowSettings();
                     }}
                   />
-                  <WithPermissionControl userAction={UserAction.UpdateEscalationPolicies}>
+                  <WithPermissionControl userAction={UserAction.EscalationChainsWrite}>
                     <WithConfirm
                       title="Delete integration?"
                       body={
@@ -300,7 +300,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
                 Change alert template and grouping
               </Button>
               {!alertReceiveChannelIdToCreateChannelFilter && (
-                <WithPermissionControl userAction={UserAction.UpdateAlertReceiveChannels}>
+                <WithPermissionControl userAction={UserAction.IntegrationsWrite}>
                   <Button
                     icon="plus"
                     className={cx('add-new-chain-button', 'TEST-add-new-chain-button')}
@@ -533,7 +533,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
                       <Text size="small" type="secondary">
                         {warningAboutModifyingEscalationChain}
                         You can{' '}
-                        <WithPermissionControl userAction={UserAction.UpdateEscalationPolicies}>
+                        <WithPermissionControl userAction={UserAction.EscalationChainsWrite}>
                           <Button
                             fill="text"
                             size="sm"
@@ -548,7 +548,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
                           </Button>
                         </WithPermissionControl>{' '}
                         of the current chain or{' '}
-                        <WithPermissionControl userAction={UserAction.UpdateEscalationPolicies}>
+                        <WithPermissionControl userAction={UserAction.EscalationChainsWrite}>
                           <Button
                             fill="text"
                             size="sm"
@@ -618,7 +618,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
     return (
       <HorizontalGroup spacing="xs">
         {Boolean(index > 0 && !channelFilter.is_default) && (
-          <WithPermissionControl userAction={UserAction.UpdateAlertReceiveChannels}>
+          <WithPermissionControl userAction={UserAction.IntegrationsWrite}>
             <IconButton
               size="sm"
               name="arrow-up"
@@ -633,7 +633,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
         )}
 
         {Boolean(index < channelFilterIds.length - 2 && !channelFilter.is_default) && (
-          <WithPermissionControl userAction={UserAction.UpdateAlertReceiveChannels}>
+          <WithPermissionControl userAction={UserAction.IntegrationsWrite}>
             <IconButton
               size="sm"
               name="arrow-down"
@@ -647,7 +647,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
           </WithPermissionControl>
         )}
         {!channelFilter.is_default && (
-          <WithPermissionControl userAction={UserAction.UpdateAlertReceiveChannels}>
+          <WithPermissionControl userAction={UserAction.IntegrationsWrite}>
             <IconButton
               size="md"
               name="trash-alt"
@@ -657,7 +657,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
             />
           </WithPermissionControl>
         )}
-        <WithPermissionControl userAction={UserAction.UpdateAlertReceiveChannels}>
+        <WithPermissionControl userAction={UserAction.IntegrationsWrite}>
           <IconButton
             size="md"
             name="pen"
@@ -671,7 +671,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
             tooltipPlacement="top"
           />
         </WithPermissionControl>
-        <WithPermissionControl userAction={UserAction.SendDemoAlert}>
+        <WithPermissionControl userAction={UserAction.IntegrationsWrite}>
           <Button variant="secondary" size="sm" onClick={this.getSendDemoAlertToParticularRoute(channelFilterId)}>
             Send demo alert
           </Button>
@@ -715,7 +715,7 @@ class AlertRules extends React.Component<AlertRulesProps, AlertRulesState> {
             </>
           )}
           escalate to{' '}
-          <WithPermissionControl userAction={UserAction.UpdateAlertReceiveChannels}>
+          <WithPermissionControl userAction={UserAction.IntegrationsWrite}>
             <div onClick={(e) => e.stopPropagation()}>
               <GSelect
                 showSearch

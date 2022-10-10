@@ -55,7 +55,7 @@ const GrafanaTeamSelect = observer((props: GrafanaTeamSelectProps) => {
                 <Icon name="info-circle" size="md" className={cx('teamSelectInfo')}></Icon>
               </Tooltip>
             </Label>
-            <WithPermissionControl userAction={UserAction.UpdateTeams}>
+            <WithPermissionControl userAction={UserAction.TeamsWrite}>
               <PluginLink path="/org/teams" className={cx('teamSelectLink')}>
                 Edit teams
               </PluginLink>

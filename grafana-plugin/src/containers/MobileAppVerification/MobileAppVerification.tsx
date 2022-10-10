@@ -1,15 +1,13 @@
-import React, { HTMLAttributes, useCallback, useEffect, useRef, useState } from 'react';
+import React, { HTMLAttributes, useEffect, useState } from 'react';
 
-import { Button, HorizontalGroup, Icon, LoadingPlaceholder } from '@grafana/ui';
+import { Button, LoadingPlaceholder } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import GTable from 'components/GTable/GTable';
 import Text from 'components/Text/Text';
 import { UserSettingsTab } from 'containers/UserSettings/UserSettings.types';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { User } from 'models/user/user.types';
-import { makeRequest } from 'network';
 import { useStore } from 'state/useStore';
 import { UserAction } from 'state/userAction';
 
@@ -31,7 +29,7 @@ const MobileAppVerification = observer((props: MobileAppVerificationProps) => {
   const userPk = (propsUserPk || userStore.currentUserPk) as User['pk'];
   const user = userStore.items[userPk as User['pk']];
   const isCurrent = userStore.currentUserPk === user.pk;
-  const action = isCurrent ? UserAction.UpdateOwnSettings : UserAction.UpdateOtherUsersSettings;
+  const action = isCurrent ? UserAction.UserSettingsWrite : UserAction.OtherSettingsWrite;
 
   const { id = UserSettingsTab.UserInfo } = props;
 

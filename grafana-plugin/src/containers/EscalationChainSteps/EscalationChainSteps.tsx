@@ -96,7 +96,7 @@ const EscalationChainSteps = observer((props: EscalationChainStepsProps) => {
         <LoadingPlaceholder text="Loading..." />
       )}
       <Timeline.Item number={(escalationPolicyIds?.length || 0) + offset + 1} color="#464C54">
-        <WithPermissionControl userAction={UserAction.UpdateEscalationPolicies}>
+        <WithPermissionControl userAction={UserAction.EscalationChainsWrite}>
           <Select
             isSearchable
             menuShouldPortal

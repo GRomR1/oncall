@@ -6,7 +6,6 @@ import { observer } from 'mobx-react';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
 import Text from 'components/Text/Text';
-import WithConfirm from 'components/WithConfirm/WithConfirm';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { useStore } from 'state/useStore';
 import { UserAction } from 'state/userAction';
@@ -45,7 +44,7 @@ const TelegramIntegrationButton = observer((props: TelegramIntegrationProps) => 
 
   return (
     <>
-      <WithPermissionControl userAction={UserAction.UpdateIntegrations}>
+      <WithPermissionControl userAction={UserAction.IntegrationsWrite}>
         <Button size={size} variant="primary" icon="plus" disabled={disabled} onClick={onInstallModalCallback}>
           Connect Telegram channel
         </Button>
