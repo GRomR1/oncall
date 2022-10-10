@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 logger = logging.getLogger(__name__)
 
 
+# TODO:...
 class AccessControl(ABC):
     ALLOWED_ROLES = []
     ACTION_VERBOSE = ""
@@ -22,6 +23,7 @@ class AccessControl(ABC):
         pass
 
 
+# TODO:...
 class IncidentActionsAccessControlMixin(AccessControl):
     """
     Mixin for auth in incident actions
@@ -61,6 +63,7 @@ class IncidentActionsAccessControlMixin(AccessControl):
         )
 
 
+# TODO:...
 class CheckAlertIsUnarchivedMixin(object):
 
     ALLOWED_ROLES = []

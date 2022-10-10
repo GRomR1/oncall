@@ -3,7 +3,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from common.constants.role import Role
+from apps.api.permissions import RBACPermission
 
 
 @pytest.fixture()
@@ -20,7 +20,7 @@ def user_public_api_setup(
 def test_get_user(
     user_public_api_setup,
 ):
-    organization, user, token, slack_team_identity, slack_user_identity = user_public_api_setup
+    _, user, token, slack_team_identity, slack_user_identity = user_public_api_setup
 
     client = APIClient()
 
@@ -32,7 +32,6 @@ def test_get_user(
         "email": user.email,
         "slack": {"user_id": slack_user_identity.slack_id, "team_id": slack_team_identity.slack_id},
         "username": user.username,
-        "role": "admin",
         "is_phone_number_verified": False,
     }
 
@@ -70,7 +69,6 @@ def test_get_users_list(
                 "email": user_1.email,
                 "slack": {"user_id": slack_user_identity.slack_id, "team_id": slack_team_identity.slack_id},
                 "username": user_1.username,
-                "role": "admin",
                 "is_phone_number_verified": False,
             },
             {
@@ -78,7 +76,6 @@ def test_get_users_list(
                 "email": user_2.email,
                 "slack": None,
                 "username": user_2.username,
-                "role": "admin",
                 "is_phone_number_verified": False,
             },
         ],
@@ -93,7 +90,7 @@ def test_get_users_list_short(
     user_public_api_setup,
     make_user_for_organization,
 ):
-    organization, user_1, token, slack_team_identity, slack_user_identity = user_public_api_setup
+    organization, user_1, token, _, _ = user_public_api_setup
     user_2 = make_user_for_organization(organization)
 
     client = APIClient()
@@ -110,14 +107,12 @@ def test_get_users_list_short(
                 "id": user_1.public_primary_key,
                 "email": user_1.email,
                 "username": user_1.username,
-                "role": "admin",
                 "is_phone_number_verified": False,
             },
             {
                 "id": user_2.public_primary_key,
                 "email": user_2.email,
                 "username": user_2.username,
-                "role": "admin",
                 "is_phone_number_verified": False,
             },
         ],
@@ -150,8 +145,8 @@ def test_get_users_list_all_role_users(
     make_user_for_organization,
 ):
     organization, admin, token, _, _ = user_public_api_setup
-    editor = make_user_for_organization(organization, role=Role.EDITOR)
-    viewer = make_user_for_organization(organization, role=Role.VIEWER)
+    editor = make_user_for_organization(organization, permissions=[RBACPermission.Permissions.USER_SETTINGS_WRITE])
+    viewer = make_user_for_organization(organization, permissions=[RBACPermission.Permissions.USER_SETTINGS_READ])
 
     client = APIClient()
 
@@ -168,10 +163,9 @@ def test_get_users_list_all_role_users(
                 "id": user.public_primary_key,
                 "email": user.email,
                 "username": user.username,
-                "role": role,
                 "is_phone_number_verified": False,
             }
-            for user, role in expected_users
+            for user, _ in expected_users
         ],
     }
 

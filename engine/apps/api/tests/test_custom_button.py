@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.test import APIClient
 
 from apps.alerts.models import CustomButton
-from common.constants.role import Role
+from apps.api.permissions import RBACPermission
 
 TEST_URL = "https://amixr.io"
 
@@ -188,21 +188,21 @@ def test_delete_custom_button(custom_button_internal_api_setup, make_user_auth_h
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_custom_button_create_permissions(
     make_organization_and_user_with_plugin_token,
     make_custom_action,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
-    _, user, token = make_organization_and_user_with_plugin_token(role)
+    _, user, token = make_organization_and_user_with_plugin_token(permissions)
     client = APIClient()
 
     url = reverse("api-internal:custom_button-list")
@@ -220,21 +220,21 @@ def test_custom_button_create_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_custom_button_update_permissions(
     make_organization_and_user_with_plugin_token,
     make_custom_action,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     custom_button = make_custom_action(organization=organization)
     client = APIClient()
 
@@ -257,17 +257,21 @@ def test_custom_button_update_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
-    [(Role.ADMIN, status.HTTP_200_OK), (Role.EDITOR, status.HTTP_200_OK), (Role.VIEWER, status.HTTP_200_OK)],
+    "permissions,expected_status",
+    [
+        ([RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
+    ],
 )
 def test_custom_button_list_permissions(
     make_organization_and_user_with_plugin_token,
     make_custom_action,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     make_custom_action(organization=organization)
     client = APIClient()
 
@@ -286,17 +290,21 @@ def test_custom_button_list_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
-    [(Role.ADMIN, status.HTTP_200_OK), (Role.EDITOR, status.HTTP_200_OK), (Role.VIEWER, status.HTTP_200_OK)],
+    "permissions,expected_status",
+    [
+        ([RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
+    ],
 )
 def test_custom_button_retrieve_permissions(
     make_organization_and_user_with_plugin_token,
     make_custom_action,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     custom_button = make_custom_action(organization=organization)
     client = APIClient()
 
@@ -315,21 +323,21 @@ def test_custom_button_retrieve_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_204_NO_CONTENT),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE], status.HTTP_204_NO_CONTENT),
+        ([RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_custom_button_delete_permissions(
     make_organization_and_user_with_plugin_token,
     make_custom_action,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     custom_button = make_custom_action(organization=organization)
     client = APIClient()
 
@@ -348,21 +356,21 @@ def test_custom_button_delete_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.OUTGOING_WEBHOOKS_WRITE], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.OUTGOING_WEBHOOKS_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_custom_button_action_permissions(
     make_organization_and_user_with_plugin_token,
     make_custom_action,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     custom_button = make_custom_action(organization=organization)
     client = APIClient()
 

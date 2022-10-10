@@ -6,23 +6,23 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APIClient
 
-from common.constants.role import Role
+from apps.api.permissions import RBACPermission
 
 
 # Testing permissions, not view itself. So mock is ok here
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.CHATOPS_WRITE], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.CHATOPS_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_set_general_log_channel_permissions(
-    make_organization_and_user_with_plugin_token, make_user_auth_headers, role, expected_status
+    make_organization_and_user_with_plugin_token, make_user_auth_headers, permissions, expected_status
 ):
-    _, user, token = make_organization_and_user_with_plugin_token(role)
+    _, user, token = make_organization_and_user_with_plugin_token(permissions)
     client = APIClient()
 
     url = reverse("api-internal:api-set-general-log-channel")

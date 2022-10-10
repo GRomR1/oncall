@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.alerts.models import AlertReceiveChannel
-from apps.api.permissions import IsAdmin, MethodPermission
+from apps.api.permissions import RBACPermission
 from apps.auth_token.auth import PluginAuthentication
 from apps.migration_tool.constants import FINISHED, IN_PROGRESS, NOT_STARTED, REQUEST_URL
 from apps.migration_tool.tasks import start_migration_from_old_amixr
@@ -19,9 +19,12 @@ logger = logging.getLogger(__name__)
 
 class MigrationPlanAPIView(APIView):
     authentication_classes = (PluginAuthentication,)
-    permission_classes = (IsAuthenticated, MethodPermission)
+    permission_classes = (IsAuthenticated, RBACPermission)
 
-    method_permissions = {IsAdmin: ("POST",)}
+    rbac_permissions = {
+        # TODO: what permissions should go here?
+        "post": [],
+    }
 
     def post(self, request):
         api_token = request.data.get("token", None)
@@ -129,7 +132,12 @@ class MigrationPlanAPIView(APIView):
 
 class MigrateAPIView(APIView):
     authentication_classes = (PluginAuthentication,)
-    permission_classes = (IsAuthenticated, IsAdmin)
+    permission_classes = (IsAuthenticated, RBACPermission)
+
+    rbac_permissions = {
+        # TODO: what permissions should go here?
+        "post": [],
+    }
 
     def post(self, request):
         api_token = request.data.get("token", None)
@@ -157,7 +165,12 @@ class MigrateAPIView(APIView):
 
 class MigrationStatusAPIView(APIView):
     authentication_classes = (PluginAuthentication,)
-    permission_classes = (IsAuthenticated, IsAdmin)
+    permission_classes = (IsAuthenticated, RBACPermission)
+
+    rbac_permissions = {
+        # TODO: what permissions should go here?
+        "get": [],
+    }
 
     def get(self, request):
         organization = request.auth.organization

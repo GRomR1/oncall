@@ -6,22 +6,19 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APIClient
 
-from common.constants.role import Role
-
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_200_OK),
+        # any authenticated user should have permission, regardless of permissions...
+        ([], status.HTTP_200_OK),
     ],
 )
 def test_slack_channels_list_permissions(
-    make_organization_and_user_with_plugin_token, make_user_auth_headers, role, expected_status
+    make_organization_and_user_with_plugin_token, make_user_auth_headers, permissions, expected_status
 ):
-    _, user, token = make_organization_and_user_with_plugin_token(role)
+    _, user, token = make_organization_and_user_with_plugin_token(permissions)
     client = APIClient()
 
     url = reverse("api-internal:slack_channel-list")
@@ -38,17 +35,20 @@ def test_slack_channels_list_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_200_OK),
+        # any authenticated user should have permission, regardless of permissions...
+        ([], status.HTTP_200_OK),
     ],
 )
 def test_slack_channels_detail_permissions(
-    make_organization_and_user_with_plugin_token, make_user_auth_headers, role, make_slack_channel, expected_status
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    make_slack_channel,
+    permissions,
+    expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     slack_channel = make_slack_channel(organization.slack_team_identity)
     client = APIClient()
 

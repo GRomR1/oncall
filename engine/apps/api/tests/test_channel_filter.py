@@ -6,26 +6,25 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APIClient
 
-from common.constants.role import Role
+from apps.api.permissions import RBACPermission
 
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.INTEGRATIONS_WRITE], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.INTEGRATIONS_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_channel_filter_create_permissions(
     make_organization_and_user_with_plugin_token,
-    make_alert_receive_channel,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
-    _, user, token = make_organization_and_user_with_plugin_token(role)
+    _, user, token = make_organization_and_user_with_plugin_token(permissions)
     client = APIClient()
 
     url = reverse("api-internal:channel_filter-list")
@@ -43,11 +42,11 @@ def test_channel_filter_create_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.INTEGRATIONS_WRITE], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.INTEGRATIONS_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_channel_filter_update_permissions(
@@ -55,10 +54,10 @@ def test_channel_filter_update_permissions(
     make_alert_receive_channel,
     make_channel_filter,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     alert_receive_channel = make_alert_receive_channel(organization)
     channel_filter = make_channel_filter(alert_receive_channel, is_default=True)
     client = APIClient()
@@ -82,18 +81,22 @@ def test_channel_filter_update_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
-    [(Role.ADMIN, status.HTTP_200_OK), (Role.EDITOR, status.HTTP_200_OK), (Role.VIEWER, status.HTTP_200_OK)],
+    "permissions,expected_status",
+    [
+        ([RBACPermission.Permissions.INTEGRATIONS_READ], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.INTEGRATIONS_WRITE], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
+    ],
 )
 def test_channel_filter_list_permissions(
     make_organization_and_user_with_plugin_token,
     make_alert_receive_channel,
     make_channel_filter,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     alert_receive_channel = make_alert_receive_channel(organization)
     make_channel_filter(alert_receive_channel, is_default=True)
     client = APIClient()
@@ -113,18 +116,22 @@ def test_channel_filter_list_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
-    [(Role.ADMIN, status.HTTP_200_OK), (Role.EDITOR, status.HTTP_200_OK), (Role.VIEWER, status.HTTP_200_OK)],
+    "permissions,expected_status",
+    [
+        ([RBACPermission.Permissions.INTEGRATIONS_READ], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.INTEGRATIONS_WRITE], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
+    ],
 )
 def test_channel_filter_retrieve_permissions(
     make_organization_and_user_with_plugin_token,
     make_alert_receive_channel,
     make_channel_filter,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     alert_receive_channel = make_alert_receive_channel(organization)
     channel_filter = make_channel_filter(alert_receive_channel, is_default=True)
     client = APIClient()
@@ -144,11 +151,11 @@ def test_channel_filter_retrieve_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_204_NO_CONTENT),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.INTEGRATIONS_WRITE], status.HTTP_204_NO_CONTENT),
+        ([RBACPermission.Permissions.INTEGRATIONS_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_channel_filter_delete_permissions(
@@ -156,10 +163,10 @@ def test_channel_filter_delete_permissions(
     make_alert_receive_channel,
     make_channel_filter,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     alert_receive_channel = make_alert_receive_channel(organization)
     channel_filter = make_channel_filter(alert_receive_channel, is_default=True)
     client = APIClient()
@@ -179,11 +186,11 @@ def test_channel_filter_delete_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.INTEGRATIONS_WRITE], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.INTEGRATIONS_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_channel_filter_move_to_position_permissions(
@@ -191,10 +198,10 @@ def test_channel_filter_move_to_position_permissions(
     make_alert_receive_channel,
     make_channel_filter,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     alert_receive_channel = make_alert_receive_channel(organization)
     channel_filter = make_channel_filter(alert_receive_channel, is_default=True)
     client = APIClient()
@@ -214,11 +221,11 @@ def test_channel_filter_move_to_position_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.INTEGRATIONS_WRITE], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.INTEGRATIONS_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_receive_channel_send_demo_alert_permissions(
@@ -226,10 +233,10 @@ def test_alert_receive_channel_send_demo_alert_permissions(
     make_user_auth_headers,
     make_alert_receive_channel,
     make_channel_filter,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     alert_receive_channel = make_alert_receive_channel(organization)
     channel_filter = make_channel_filter(alert_receive_channel, is_default=True)
     client = APIClient()

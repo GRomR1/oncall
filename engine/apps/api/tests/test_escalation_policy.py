@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework.test import APIClient
 
 from apps.alerts.models import EscalationPolicy
-from common.constants.role import Role
+from apps.api.permissions import RBACPermission
 
 
 @pytest.fixture()
@@ -91,11 +91,11 @@ def test_move_to_position(escalation_policy_internal_api_setup, make_user_auth_h
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.ESCALATION_CHAINS_WRITE], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.ESCALATION_CHAINS_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_escalation_policy_create_permissions(
@@ -103,10 +103,10 @@ def test_escalation_policy_create_permissions(
     make_escalation_chain,
     make_escalation_policy,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     escalation_chain = make_escalation_chain(organization)
     make_escalation_policy(
         escalation_chain, escalation_policy_step=EscalationPolicy.STEP_WAIT, wait_delay=EscalationPolicy.ONE_MINUTE
@@ -128,11 +128,11 @@ def test_escalation_policy_create_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.ESCALATION_CHAINS_WRITE], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.ESCALATION_CHAINS_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_escalation_policy_update_permissions(
@@ -140,10 +140,10 @@ def test_escalation_policy_update_permissions(
     make_escalation_chain,
     make_escalation_policy,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     escalation_chain = make_escalation_chain(organization)
     escalation_policy = make_escalation_policy(
         escalation_chain, escalation_policy_step=EscalationPolicy.STEP_WAIT, wait_delay=EscalationPolicy.ONE_MINUTE
@@ -169,11 +169,11 @@ def test_escalation_policy_update_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_200_OK),
+        ([RBACPermission.Permissions.ESCALATION_CHAINS_READ], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.ESCALATION_CHAINS_WRITE], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_escalation_policy_list_permissions(
@@ -181,10 +181,10 @@ def test_escalation_policy_list_permissions(
     make_escalation_chain,
     make_escalation_policy,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     escalation_chain = make_escalation_chain(organization)
     make_escalation_policy(
         escalation_chain, escalation_policy_step=EscalationPolicy.STEP_WAIT, wait_delay=EscalationPolicy.ONE_MINUTE
@@ -206,11 +206,11 @@ def test_escalation_policy_list_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_200_OK),
+        ([RBACPermission.Permissions.ESCALATION_CHAINS_READ], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.ESCALATION_CHAINS_WRITE], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_escalation_policy_retrieve_permissions(
@@ -218,10 +218,10 @@ def test_escalation_policy_retrieve_permissions(
     make_escalation_chain,
     make_escalation_policy,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     escalation_chain = make_escalation_chain(organization)
     escalation_policy = make_escalation_policy(
         escalation_chain, escalation_policy_step=EscalationPolicy.STEP_WAIT, wait_delay=EscalationPolicy.ONE_MINUTE
@@ -243,11 +243,11 @@ def test_escalation_policy_retrieve_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_204_NO_CONTENT),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.ESCALATION_CHAINS_WRITE], status.HTTP_204_NO_CONTENT),
+        ([RBACPermission.Permissions.ESCALATION_CHAINS_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_escalation_policy_delete_permissions(
@@ -255,10 +255,10 @@ def test_escalation_policy_delete_permissions(
     make_escalation_chain,
     make_escalation_policy,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     escalation_chain = make_escalation_chain(organization)
     escalation_policy = make_escalation_policy(
         escalation_chain, escalation_policy_step=EscalationPolicy.STEP_WAIT, wait_delay=EscalationPolicy.ONE_MINUTE
@@ -280,11 +280,11 @@ def test_escalation_policy_delete_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_200_OK),
+        ([RBACPermission.Permissions.ESCALATION_CHAINS_READ], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.ESCALATION_CHAINS_WRITE], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_escalation_policy_escalation_options_permissions(
@@ -292,10 +292,10 @@ def test_escalation_policy_escalation_options_permissions(
     make_escalation_chain,
     make_escalation_policy,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     escalation_chain = make_escalation_chain(organization)
     make_escalation_policy(
         escalation_chain, escalation_policy_step=EscalationPolicy.STEP_WAIT, wait_delay=EscalationPolicy.ONE_MINUTE
@@ -317,11 +317,11 @@ def test_escalation_policy_escalation_options_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_200_OK),
+        ([RBACPermission.Permissions.ESCALATION_CHAINS_READ], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.ESCALATION_CHAINS_WRITE], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_escalation_policy_delay_options_permissions(
@@ -329,10 +329,10 @@ def test_escalation_policy_delay_options_permissions(
     make_escalation_chain,
     make_escalation_policy,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
 
     escalation_chain = make_escalation_chain(organization)
     make_escalation_policy(
@@ -355,11 +355,11 @@ def test_escalation_policy_delay_options_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_200_OK),
+        ([RBACPermission.Permissions.ESCALATION_CHAINS_READ], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.ESCALATION_CHAINS_WRITE], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_escalation_policy_move_to_position_permissions(
@@ -367,10 +367,10 @@ def test_escalation_policy_move_to_position_permissions(
     make_escalation_chain,
     make_escalation_policy,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
 
     escalation_chain = make_escalation_chain(organization)
     escalation_policy = make_escalation_policy(

@@ -1,8 +1,6 @@
-# from unittest.mock import Mock, patch
-
 import pytest
 
-from common.constants.role import Role
+from apps.api.permissions import RBACPermission
 
 
 @pytest.mark.django_db
@@ -13,7 +11,7 @@ def test_self_or_admin(
     organization = make_organization()
     admin = make_user_for_organization(organization)
     second_admin = make_user_for_organization(organization)
-    editor = make_user_for_organization(organization, role=Role.EDITOR)
+    editor = make_user_for_organization(organization, [RBACPermission.Permissions.USER_SETTINGS_WRITE])
 
     another_organization = make_organization()
     admin_from_another_organization = make_user_for_organization(another_organization)

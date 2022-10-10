@@ -3,14 +3,14 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from common.constants.role import Role
+from apps.api.permissions import RBACPermission
 
 
 @pytest.mark.django_db
 def test_not_authorized(make_organization_and_user_with_plugin_token, make_telegram_channel):
     client = APIClient()
 
-    organization, user, _ = make_organization_and_user_with_plugin_token()
+    organization, _, _ = make_organization_and_user_with_plugin_token()
     telegram_channel = make_telegram_channel(organization=organization)
 
     url = reverse("api-internal:telegram_channel-list")
@@ -32,22 +32,21 @@ def test_not_authorized(make_organization_and_user_with_plugin_token, make_teleg
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_200_OK),
+        ([RBACPermission.Permissions.CHATOPS_READ], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.CHATOPS_WRITE], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_list_telegram_channels_permissions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
     client = APIClient()
-
-    organization, user, token = make_organization_and_user_with_plugin_token(role=role)
+    _, user, token = make_organization_and_user_with_plugin_token(permissions)
 
     url = reverse("api-internal:telegram_channel-list")
     response = client.get(url, **make_user_auth_headers(user, token))
@@ -57,23 +56,22 @@ def test_list_telegram_channels_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_200_OK),
+        ([RBACPermission.Permissions.CHATOPS_READ], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.CHATOPS_WRITE], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_get_telegram_channels_permissions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
     make_telegram_channel,
-    role,
+    permissions,
     expected_status,
 ):
     client = APIClient()
-
-    organization, user, token = make_organization_and_user_with_plugin_token(role=role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     telegram_channel = make_telegram_channel(organization=organization)
 
     url = reverse("api-internal:telegram_channel-detail", kwargs={"pk": telegram_channel.public_primary_key})
@@ -84,23 +82,23 @@ def test_get_telegram_channels_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_204_NO_CONTENT),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.CHATOPS_WRITE], status.HTTP_204_NO_CONTENT),
+        ([RBACPermission.Permissions.CHATOPS_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_delete_telegram_channels_permissions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
     make_telegram_channel,
-    role,
+    permissions,
     expected_status,
 ):
     client = APIClient()
 
-    organization, user, token = make_organization_and_user_with_plugin_token(role=role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     telegram_channel = make_telegram_channel(organization=organization)
 
     url = reverse("api-internal:telegram_channel-detail", kwargs={"pk": telegram_channel.public_primary_key})
@@ -111,23 +109,23 @@ def test_delete_telegram_channels_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.CHATOPS_WRITE], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.CHATOPS_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_set_default_telegram_channels_permissions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
     make_telegram_channel,
-    role,
+    permissions,
     expected_status,
 ):
     client = APIClient()
 
-    organization, user, token = make_organization_and_user_with_plugin_token(role=role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
 
     telegram_channel = make_telegram_channel(organization=organization)
 

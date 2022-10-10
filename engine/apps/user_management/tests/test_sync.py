@@ -19,8 +19,8 @@ def test_sync_users_for_organization(make_organization, make_user_for_organizati
             "email": "test@test.test",
             "name": "Test",
             "login": "test",
-            "role": "admin",
             "avatarUrl": "test.test/test",
+            "permissions": [],
         }
         for user_id in (2, 3)
     )
@@ -108,8 +108,8 @@ def test_sync_organization(
             "email": "test@test.test",
             "name": "Test",
             "login": "test",
-            "role": "admin",
             "avatarUrl": "test.test/test",
+            "permissions": [],
         },
     )
 
@@ -133,7 +133,7 @@ def test_sync_organization(
         },
     )
 
-    with patch.object(GrafanaAPIClient, "get_users", return_value=(api_users_response, {"status_code": 200})):
+    with patch.object(GrafanaAPIClient, "get_users", return_value=api_users_response):
         with patch.object(GrafanaAPIClient, "get_teams", return_value=(api_teams_response, None)):
             with patch.object(GrafanaAPIClient, "get_team_members", return_value=(api_members_response, None)):
                 sync_organization(organization)
@@ -174,8 +174,8 @@ def test_duplicate_user_ids(make_organization, make_user_for_organization):
             "email": "newtest@test.test",
             "name": "New Test",
             "login": "test",
-            "role": "admin",
             "avatarUrl": "test.test/test",
+            "permissions": [],
         }
     ]
 

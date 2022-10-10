@@ -6,30 +6,27 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APIClient
 
-from common.constants.role import Role
+from apps.api.permissions import RBACPermission
+
+# TODO: should maybe add rbac permissions tests for
+# SetGeneralChannel.post
 
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_200_OK),
+        # any authenticated user should have permission, regardless of permissions...
+        ([], status.HTTP_200_OK),
     ],
 )
 def test_current_team_retrieve_permissions(
-    make_organization,
-    make_user_for_organization,
-    make_token_for_organization,
+    make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
-    org = make_organization()
-    tester = make_user_for_organization(org, role=role)
-    _, token = make_token_for_organization(org)
-
+    _, tester, token = make_organization_and_user_with_plugin_token(permissions)
     client = APIClient()
 
     url = reverse("api-internal:api-current-team")
@@ -46,25 +43,20 @@ def test_current_team_retrieve_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.OTHER_SETTINGS_WRITE], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.OTHER_SETTINGS_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_current_team_update_permissions(
-    make_organization,
-    make_user_for_organization,
-    make_token_for_organization,
+    make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
-    org = make_organization()
-    tester = make_user_for_organization(org, role=role)
-    _, token = make_token_for_organization(org)
-
+    _, tester, token = make_organization_and_user_with_plugin_token(permissions)
     client = APIClient()
 
     url = reverse("api-internal:api-current-team")
@@ -82,21 +74,20 @@ def test_current_team_update_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.CHATOPS_READ], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.CHATOPS_WRITE], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_current_team_get_telegram_verification_code_permissions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, tester, token = make_organization_and_user_with_plugin_token(role)
-
+    _, tester, token = make_organization_and_user_with_plugin_token(permissions)
     client = APIClient()
 
     url = reverse("api-internal:api-get-telegram-verification-code")
@@ -107,21 +98,20 @@ def test_current_team_get_telegram_verification_code_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.CHATOPS_READ], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.CHATOPS_WRITE], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_current_team_get_channel_verification_code_permissions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, tester, token = make_organization_and_user_with_plugin_token(role)
-
+    _, tester, token = make_organization_and_user_with_plugin_token(permissions)
     client = APIClient()
 
     url = reverse("api-internal:api-get-channel-verification-code") + "?backend=TESTONLY"
@@ -135,8 +125,7 @@ def test_current_team_get_channel_verification_code_ok(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
 ):
-    organization, tester, token = make_organization_and_user_with_plugin_token(Role.ADMIN)
-
+    organization, tester, token = make_organization_and_user_with_plugin_token()
     client = APIClient()
 
     url = reverse("api-internal:api-get-channel-verification-code") + "?backend=TESTONLY"
@@ -156,8 +145,7 @@ def test_current_team_get_channel_verification_code_invalid(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
 ):
-    organization, tester, token = make_organization_and_user_with_plugin_token(Role.ADMIN)
-
+    _, tester, token = make_organization_and_user_with_plugin_token()
     client = APIClient()
 
     url = reverse("api-internal:api-get-channel-verification-code") + "?backend=INVALID"

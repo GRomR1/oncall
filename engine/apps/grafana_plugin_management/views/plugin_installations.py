@@ -2,10 +2,11 @@ from rest_framework import status
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.decorators import action
 from rest_framework.mixins import CreateModelMixin, ListModelMixin, RetrieveModelMixin
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from apps.api.permissions import IsStaff
+from apps.api.permissions import RBACPermission
 from apps.api.serializers.organization import PluginOrganizationSerializer
 from apps.grafana_plugin.helpers.client import GrafanaAPIClient
 from apps.user_management.models import Organization
@@ -21,7 +22,17 @@ class PluginInstallationsView(
     GenericViewSet,
 ):
     authentication_classes = [BasicAuthentication, SessionAuthentication]
-    permission_classes = (IsStaff,)
+    permission_classes = (IsAuthenticated, RBACPermission)
+    rbac_permissions = {
+        # TODO: what permissions should go here?
+        "list": [],
+        "retrieve": [],
+        "create": [],
+        "revoke_and_reissue": [],
+        "revoke": [],
+        "status": [],
+        "sync_organization": [],
+    }
 
     model = Organization
     serializer_class = PluginOrganizationSerializer

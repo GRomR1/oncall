@@ -13,6 +13,7 @@ from common.jinja_templater import jinja_template_env
 from .step_mixins import CheckAlertIsUnarchivedMixin, IncidentActionsAccessControlMixin
 
 
+# TODO:
 class OpenAlertAppearanceDialogStep(
     CheckAlertIsUnarchivedMixin, IncidentActionsAccessControlMixin, scenario_step.ScenarioStep
 ):

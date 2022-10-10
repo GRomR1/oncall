@@ -12,7 +12,6 @@ from apps.schedules.ical_utils import (
     users_in_ical,
 )
 from apps.schedules.models import CustomOnCallShift, OnCallScheduleCalendar
-from common.constants.role import Role
 
 
 @pytest.mark.django_db
@@ -22,7 +21,7 @@ from common.constants.role import Role
 )
 def test_users_in_ical_viewers_inclusion(make_organization_and_user, make_user_for_organization, include_viewers):
     organization, user = make_organization_and_user()
-    viewer = make_user_for_organization(organization, Role.VIEWER)
+    viewer = make_user_for_organization(organization, permissions=[])
 
     usernames = [user.username, viewer.username]
     result = users_in_ical(usernames, organization, include_viewers=include_viewers)
@@ -41,7 +40,7 @@ def test_list_users_to_notify_from_ical_viewers_inclusion(
     make_organization_and_user, make_user_for_organization, make_schedule, make_on_call_shift, include_viewers
 ):
     organization, user = make_organization_and_user()
-    viewer = make_user_for_organization(organization, Role.VIEWER)
+    viewer = make_user_for_organization(organization, permissions=[])
 
     schedule = make_schedule(organization, schedule_class=OnCallScheduleCalendar)
     date = timezone.now().replace(tzinfo=None, microsecond=0)

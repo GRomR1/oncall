@@ -1,5 +1,6 @@
 import json
 import sys
+import typing
 import uuid
 from importlib import import_module, reload
 
@@ -34,6 +35,7 @@ from apps.alerts.tests.factories import (
     ResolutionNoteFactory,
     ResolutionNoteSlackMessageFactory,
 )
+from apps.api.permissions import ALL_PERMISSIONS, GrafanaPermission, RBACPermission
 from apps.auth_token.models import ApiAuthToken, PluginAuthToken
 from apps.base.models.user_notification_policy_log_record import (
     UserNotificationPolicyLogRecord,
@@ -70,7 +72,6 @@ from apps.telegram.tests.factories import (
 from apps.twilioapp.tests.factories import PhoneCallFactory, SMSFactory
 from apps.user_management.models.user import User, listen_for_user_model_save
 from apps.user_management.tests.factories import OrganizationFactory, TeamFactory, UserFactory
-from common.constants.role import Role
 
 register(OrganizationFactory)
 register(UserFactory)
@@ -112,6 +113,10 @@ register(IntegrationHeartBeatFactory)
 register(LiveSettingFactory)
 
 
+def _transform_user_permissions(permissions: typing.List[RBACPermission.Permissions]) -> typing.List[GrafanaPermission]:
+    return [{"action": permission.value} for permission in permissions]
+
+
 @pytest.fixture(autouse=True)
 def mock_slack_api_call(monkeypatch):
     def mock_api_call(*args, **kwargs):
@@ -150,9 +155,11 @@ def make_organization():
 
 @pytest.fixture
 def make_user_for_organization():
-    def _make_user_for_organization(organization, role=Role.ADMIN, **kwargs):
+    def _make_user_for_organization(
+        organization, permissions: typing.List[RBACPermission.Permissions] = ALL_PERMISSIONS, **kwargs
+    ):
         post_save.disconnect(listen_for_user_model_save, sender=User)
-        user = UserFactory(organization=organization, role=role, **kwargs)
+        user = UserFactory(organization=organization, permissions=_transform_user_permissions(permissions), **kwargs)
         post_save.disconnect(listen_for_user_model_save, sender=User)
         return user
 
@@ -191,19 +198,17 @@ def make_user_auth_headers():
 
 @pytest.fixture
 def make_user():
-    def _make_user(role=Role.ADMIN, **kwargs):
-        user = UserFactory(role=role, **kwargs)
-
-        return user
+    def _make_user(permissions: typing.List[RBACPermission.Permissions] = ALL_PERMISSIONS, **kwargs):
+        return UserFactory(permissions=_transform_user_permissions(permissions), **kwargs)
 
     return _make_user
 
 
 @pytest.fixture
 def make_organization_and_user(make_organization, make_user_for_organization):
-    def _make_organization_and_user(role=Role.ADMIN):
+    def _make_organization_and_user(permissions: typing.List[RBACPermission.Permissions] = ALL_PERMISSIONS):
         organization = make_organization()
-        user = make_user_for_organization(organization=organization, role=role)
+        user = make_user_for_organization(organization=organization, permissions=permissions)
         return organization, user
 
     return _make_organization_and_user
@@ -213,9 +218,13 @@ def make_organization_and_user(make_organization, make_user_for_organization):
 def make_organization_and_user_with_slack_identities(
     make_organization_with_slack_team_identity, make_user_with_slack_user_identity
 ):
-    def _make_organization_and_user_with_slack_identities(role=Role.ADMIN):
+    def _make_organization_and_user_with_slack_identities(
+        permissions: typing.List[RBACPermission.Permissions] = ALL_PERMISSIONS,
+    ):
         organization, slack_team_identity = make_organization_with_slack_team_identity()
-        user, slack_user_identity = make_user_with_slack_user_identity(slack_team_identity, organization, role=role)
+        user, slack_user_identity = make_user_with_slack_user_identity(
+            slack_team_identity, organization, permissions=permissions
+        )
 
         return organization, user, slack_team_identity, slack_user_identity
 
@@ -224,12 +233,21 @@ def make_organization_and_user_with_slack_identities(
 
 @pytest.fixture
 def make_user_with_slack_user_identity():
-    def _make_slack_user_identity_with_user(slack_team_identity, organization, role=Role.ADMIN, **kwargs):
+    def _make_slack_user_identity_with_user(
+        slack_team_identity,
+        organization,
+        permissions: typing.List[RBACPermission.Permissions] = ALL_PERMISSIONS,
+        **kwargs,
+    ):
         slack_user_identity = SlackUserIdentityFactory(
             slack_team_identity=slack_team_identity,
             **kwargs,
         )
-        user = UserFactory(slack_user_identity=slack_user_identity, organization=organization, role=role)
+        user = UserFactory(
+            slack_user_identity=slack_user_identity,
+            organization=organization,
+            permissions=_transform_user_permissions(permissions),
+        )
         return user, slack_user_identity
 
     return _make_slack_user_identity_with_user
@@ -554,8 +572,10 @@ def mock_start_disable_maintenance_task(monkeypatch):
 
 @pytest.fixture()
 def make_organization_and_user_with_plugin_token(make_organization_and_user, make_token_for_organization):
-    def _make_organization_and_user_with_plugin_token(role=Role.ADMIN):
-        organization, user = make_organization_and_user(role=role)
+    def _make_organization_and_user_with_plugin_token(
+        permissions: typing.List[RBACPermission.Permissions] = ALL_PERMISSIONS,
+    ):
+        organization, user = make_organization_and_user(permissions=permissions)
         _, token = make_token_for_organization(organization)
 
         return organization, user, token

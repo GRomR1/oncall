@@ -19,7 +19,7 @@
 #     make_alert_group,
 # ):
 #     amixr_team = make_team()
-#     admin = make_user_for_team(amixr_team, role=ROLE_ADMIN)
+#     admin = make_user_for_team(amixr_team)
 #     alert_receive_channel = make_alert_receive_channel(amixr_team)
 #     alert_group = make_alert_group(alert_receive_channel)
 #     make_email_message(
@@ -44,7 +44,7 @@
 #     make_alert_group,
 # ):
 #     amixr_team = make_team()
-#     admin = make_user_for_team(amixr_team, role=ROLE_ADMIN)
+#     admin = make_user_for_team(amixr_team)
 #     alert_receive_channel = make_alert_receive_channel(amixr_team)
 #     alert_group = make_alert_group(alert_receive_channel)
 #     make_email_message(
@@ -70,7 +70,7 @@
 #     make_alert_group,
 # ):
 #     amixr_team = make_team()
-#     admin = make_user_for_team(amixr_team, role=ROLE_ADMIN)
+#     admin = make_user_for_team(amixr_team)
 #     alert_receive_channel = make_alert_receive_channel(amixr_team)
 #     alert_group = make_alert_group(alert_receive_channel)
 #     make_email_message(
@@ -108,7 +108,7 @@
 # ):
 #     """The test for Email message status update via api"""
 #     amixr_team = make_team()
-#     admin = make_user_for_team(amixr_team, role=ROLE_ADMIN)
+#     admin = make_user_for_team(amixr_team)
 #     alert_receive_channel = make_alert_receive_channel(amixr_team)
 #     alert_group = make_alert_group(alert_receive_channel)
 #     email_message = make_email_message(

@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.test import APIClient
 
 from apps.alerts.models import AlertReceiveChannel, EscalationPolicy
-from common.constants.role import Role
+from apps.api.permissions import RBACPermission
 
 
 @pytest.fixture()
@@ -203,20 +203,20 @@ def test_integration_search(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.INTEGRATIONS_WRITE], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.INTEGRATIONS_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_receive_channel_create_permissions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
-    _, user, token = make_organization_and_user_with_plugin_token(role)
+    _, user, token = make_organization_and_user_with_plugin_token(permissions)
     client = APIClient()
 
     url = reverse("api-internal:alert_receive_channel-list")
@@ -233,21 +233,21 @@ def test_alert_receive_channel_create_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.INTEGRATIONS_WRITE], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.INTEGRATIONS_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_receive_channel_update_permissions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
     make_alert_receive_channel,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     alert_receive_channel = make_alert_receive_channel(organization)
     client = APIClient()
 
@@ -270,21 +270,21 @@ def test_alert_receive_channel_update_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_204_NO_CONTENT),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.INTEGRATIONS_WRITE], status.HTTP_204_NO_CONTENT),
+        ([RBACPermission.Permissions.INTEGRATIONS_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_receive_channel_delete_permissions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
     make_alert_receive_channel,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     alert_receive_channel = make_alert_receive_channel(organization)
     client = APIClient()
 
@@ -302,16 +302,20 @@ def test_alert_receive_channel_delete_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
-    [(Role.ADMIN, status.HTTP_200_OK), (Role.EDITOR, status.HTTP_200_OK), (Role.VIEWER, status.HTTP_200_OK)],
+    "permissions,expected_status",
+    [
+        ([RBACPermission.Permissions.INTEGRATIONS_READ], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.INTEGRATIONS_WRITE], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
+    ],
 )
 def test_alert_receive_channel_list_permissions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     client = APIClient()
 
     url = reverse("api-internal:alert_receive_channel-list")
@@ -329,17 +333,21 @@ def test_alert_receive_channel_list_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
-    [(Role.ADMIN, status.HTTP_200_OK), (Role.EDITOR, status.HTTP_200_OK), (Role.VIEWER, status.HTTP_200_OK)],
+    "permissions,expected_status",
+    [
+        ([RBACPermission.Permissions.INTEGRATIONS_READ], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.INTEGRATIONS_WRITE], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
+    ],
 )
 def test_alert_receive_channel_detail_permissions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
     make_alert_receive_channel,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     alert_receive_channel = make_alert_receive_channel(organization)
     client = APIClient()
 
@@ -358,21 +366,21 @@ def test_alert_receive_channel_detail_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.INTEGRATIONS_WRITE], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.INTEGRATIONS_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_receive_channel_send_demo_alert_permissions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
     make_alert_receive_channel,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     alert_receive_channel = make_alert_receive_channel(organization)
     client = APIClient()
 
@@ -393,20 +401,20 @@ def test_alert_receive_channel_send_demo_alert_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_200_OK),
+        ([RBACPermission.Permissions.INTEGRATIONS_READ], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.INTEGRATIONS_WRITE], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_receive_channel_integration_options_permissions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
-    _, user, token = make_organization_and_user_with_plugin_token(role)
+    _, user, token = make_organization_and_user_with_plugin_token(permissions)
     client = APIClient()
 
     url = reverse("api-internal:alert_receive_channel-integration-options")
@@ -424,21 +432,21 @@ def test_alert_receive_channel_integration_options_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.INTEGRATIONS_WRITE], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.INTEGRATIONS_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_receive_channel_preview_template_permissions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
     make_alert_receive_channel,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     alert_receive_channel = make_alert_receive_channel(organization)
     client = APIClient()
     url = reverse(
@@ -499,21 +507,21 @@ def test_alert_receive_channel_preview_template_require_notification_channel(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.INTEGRATIONS_WRITE], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.INTEGRATIONS_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_receive_channel_change_team_permissions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
     make_alert_receive_channel,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     alert_receive_channel = make_alert_receive_channel(organization)
     client = APIClient()
     url = reverse(
@@ -595,20 +603,20 @@ def test_alert_receive_channel_change_team(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_200_OK),
+        ([RBACPermission.Permissions.INTEGRATIONS_READ], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.INTEGRATIONS_WRITE], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_receive_channel_counters_permissions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     client = APIClient()
 
     url = reverse(
@@ -628,21 +636,21 @@ def test_alert_receive_channel_counters_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_200_OK),
+        ([RBACPermission.Permissions.INTEGRATIONS_READ], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.INTEGRATIONS_WRITE], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_receive_channel_counters_per_integration_permissions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
     make_alert_receive_channel,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     client = APIClient()
     alert_receive_channel = make_alert_receive_channel(organization)
 

@@ -1,7 +1,7 @@
 import json
 import logging
 import time
-from typing import Optional, Tuple
+from typing import Dict, List, Optional, Tuple, TypedDict
 from urllib.parse import urljoin
 
 import requests
@@ -9,7 +9,25 @@ from django.conf import settings
 from rest_framework import status
 from rest_framework.response import Response
 
+from apps.api.permissions import ACTION_PREFIX, GrafanaPermission
+
 logger = logging.getLogger(__name__)
+
+
+class GrafanaUser(TypedDict):
+    orgId: int
+    userId: int
+    email: str
+    name: str
+    avatarUrl: str
+    login: str
+    role: str
+    lastSeenAt: str
+    lastSeenAtAge: str
+
+
+class GrafanaUserWithPermissions(GrafanaUser):
+    permissions: List[GrafanaPermission]
 
 
 class APIClient:
@@ -75,24 +93,27 @@ class GrafanaAPIClient(APIClient):
     def check_token(self) -> Tuple[Optional[Response], dict]:
         return self.api_get("api/org")
 
-    def get_users(self) -> Tuple[Optional[Response], dict]:
-        """
-        Response example:
-        [
-            {
-                'orgId': 1,
-                'userId': 1,
-                'email': 'user@example.com',
-                'name': 'User User',
-                'avatarUrl': '/avatar/79163f696e9e08958c0d3f73c160e2cc',
-                'login': 'user',
-                'role': 'Admin',
-                'lastSeenAt': '2021-06-21T07:01:45Z',
-                'lastSeenAtAge': '9m'
-            },
-        ]
-        """
-        return self.api_get("api/org/users")
+    def get_users_permissions(self) -> Dict[str, List[GrafanaPermission]]:
+        data, _ = self.api_get(f"api/access-control/org/users/permissions?actionPrefix={ACTION_PREFIX}")
+        return data
+
+    def get_users(self) -> List[GrafanaUserWithPermissions]:
+        users, _ = self.api_get("api/org/users")
+
+        if not users:
+            return []
+
+        user_permissions = self.get_users_permissions()
+
+        # if for whatever reason the call to fetch user permissions fails, we should just
+        # return an empty array to avoid potentially wiping all current user permissions
+        if not user_permissions:
+            return []
+
+        # merge the users permissions response into the org users response
+        for user in users:
+            user["permissions"] = user_permissions.get(str(user["userId"]), [])
+        return users
 
     def get_teams(self):
         return self.api_get("api/teams/search?perpage=1000000")

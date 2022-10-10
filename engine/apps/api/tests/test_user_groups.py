@@ -3,8 +3,6 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from common.constants.role import Role
-
 
 @pytest.mark.django_db
 def test_usergroup_list(
@@ -50,17 +48,16 @@ def test_usergroup_list_without_slack_installed(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_200_OK),
+        # any authenticated user should have permission, regardless of permissions...
+        ([], status.HTTP_200_OK),
     ],
 )
 def test_usergroup_permissions(
-    make_organization_and_user_with_plugin_token, make_user_auth_headers, role, expected_status
+    make_organization_and_user_with_plugin_token, make_user_auth_headers, permissions, expected_status
 ):
-    _, user, token = make_organization_and_user_with_plugin_token(role)
+    _, user, token = make_organization_and_user_with_plugin_token(permissions)
     client = APIClient()
 
     url = reverse("api-internal:user_group-list")

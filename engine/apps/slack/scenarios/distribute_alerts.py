@@ -581,6 +581,7 @@ class CustomButtonProcessStep(
         scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
     ]
 
+    # TODO:
     ALLOWED_ROLES = [Role.ADMIN, Role.EDITOR]
     ACTION_VERBOSE = "click custom button"
 

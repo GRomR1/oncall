@@ -10,6 +10,7 @@ from rest_framework.serializers import ValidationError
 from rest_framework.test import APIClient
 
 from apps.alerts.models import EscalationPolicy
+from apps.api.permissions import RBACPermission
 from apps.schedules.ical_utils import memoized_users_in_ical
 from apps.schedules.models import (
     CustomOnCallShift,
@@ -18,7 +19,6 @@ from apps.schedules.models import (
     OnCallScheduleICal,
     OnCallScheduleWeb,
 )
-from common.constants.role import Role
 
 ICAL_URL = "https://calendar.google.com/calendar/ical/amixr.io_37gttuakhrtr75ano72p69rt78%40group.calendar.google.com/private-1d00a680ba5be7426c3eb3ef1616e26d/basic.ics"
 
@@ -984,7 +984,7 @@ def test_merging_same_shift_events(
 
     user_a = make_user_for_organization(organization)
     user_b = make_user_for_organization(organization)
-    user_c = make_user_for_organization(organization, role=Role.VIEWER)
+    user_c = make_user_for_organization(organization, permissions=[RBACPermission.Permissions.SCHEDULES_READ])
     # clear users pks <-> organization cache (persisting between tests)
     memoized_users_in_ical.cache_clear()
 
@@ -1078,21 +1078,21 @@ def test_filter_events_invalid_type(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.SCHEDULES_WRITE], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.SCHEDULES_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_schedule_create_permissions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
     make_schedule,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role=role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     make_schedule(
         organization,
         schedule_class=OnCallScheduleICal,
@@ -1116,21 +1116,21 @@ def test_schedule_create_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.SCHEDULES_WRITE], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.SCHEDULES_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_schedule_update_permissions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
     make_schedule,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role=role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     schedule = make_schedule(
         organization,
         schedule_class=OnCallScheduleICal,
@@ -1158,17 +1158,21 @@ def test_schedule_update_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
-    [(Role.ADMIN, status.HTTP_200_OK), (Role.EDITOR, status.HTTP_200_OK), (Role.VIEWER, status.HTTP_200_OK)],
+    "permissions,expected_status",
+    [
+        ([RBACPermission.Permissions.SCHEDULES_READ], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.SCHEDULES_WRITE], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
+    ],
 )
 def test_schedule_list_permissions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
     make_schedule,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role=role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     make_schedule(
         organization,
         schedule_class=OnCallScheduleICal,
@@ -1192,17 +1196,21 @@ def test_schedule_list_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
-    [(Role.ADMIN, status.HTTP_200_OK), (Role.EDITOR, status.HTTP_200_OK), (Role.VIEWER, status.HTTP_200_OK)],
+    "permissions,expected_status",
+    [
+        ([RBACPermission.Permissions.SCHEDULES_READ], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.SCHEDULES_WRITE], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
+    ],
 )
 def test_schedule_retrieve_permissions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
     make_schedule,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role=role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     schedule = make_schedule(
         organization,
         schedule_class=OnCallScheduleICal,
@@ -1226,21 +1234,21 @@ def test_schedule_retrieve_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_204_NO_CONTENT),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.SCHEDULES_WRITE], status.HTTP_204_NO_CONTENT),
+        ([RBACPermission.Permissions.SCHEDULES_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_schedule_delete_permissions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
     make_schedule,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role=role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     schedule = make_schedule(
         organization,
         schedule_class=OnCallScheduleICal,
@@ -1264,21 +1272,21 @@ def test_schedule_delete_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_200_OK),
+        ([RBACPermission.Permissions.SCHEDULES_READ], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.SCHEDULES_WRITE], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_events_permissions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
     make_schedule,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role=role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     schedule = make_schedule(
         organization,
         schedule_class=OnCallScheduleICal,
@@ -1302,21 +1310,21 @@ def test_events_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.SCHEDULES_WRITE], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.SCHEDULES_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_reload_ical_permissions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
     make_schedule,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role=role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     schedule = make_schedule(
         organization,
         schedule_class=OnCallScheduleICal,
@@ -1340,21 +1348,21 @@ def test_reload_ical_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_200_OK),
+        ([RBACPermission.Permissions.SCHEDULES_READ], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.SCHEDULES_WRITE], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_schedule_notify_oncall_shift_freq_options_permissions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
     make_schedule,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role=role)
+    _, user, token = make_organization_and_user_with_plugin_token(permissions)
     url = reverse("api-internal:schedule-notify-oncall-shift-freq-options")
     client = APIClient()
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
@@ -1364,21 +1372,21 @@ def test_schedule_notify_oncall_shift_freq_options_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_200_OK),
+        ([RBACPermission.Permissions.SCHEDULES_READ], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.SCHEDULES_WRITE], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_schedule_notify_empty_oncall_options_permissions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
     make_schedule,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role=role)
+    _, user, token = make_organization_and_user_with_plugin_token(permissions)
     url = reverse("api-internal:schedule-notify-empty-oncall-options")
     client = APIClient()
     response = client.get(url, format="json", **make_user_auth_headers(user, token))
@@ -1388,21 +1396,21 @@ def test_schedule_notify_empty_oncall_options_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_200_OK),
+        ([RBACPermission.Permissions.SCHEDULES_READ], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.SCHEDULES_WRITE], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_schedule_mention_options_permissions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
     make_schedule,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role=role)
+    _, user, token = make_organization_and_user_with_plugin_token(permissions)
     url = reverse("api-internal:schedule-mention-options")
     client = APIClient()
     response = client.get(url, format="json", **make_user_auth_headers(user, token))

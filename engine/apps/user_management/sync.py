@@ -14,7 +14,7 @@ logger.setLevel(logging.DEBUG)
 def sync_organization(organization):
     client = GrafanaAPIClient(api_url=organization.grafana_url, api_token=organization.api_token)
 
-    api_users, call_status = client.get_users()
+    api_users = client.get_users()
 
     sync_instance_info(organization)
 

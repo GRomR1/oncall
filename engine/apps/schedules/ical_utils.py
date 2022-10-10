@@ -13,6 +13,7 @@ from django.db.models import Q
 from django.utils import timezone
 from icalendar import Calendar
 
+from apps.api.permissions import RBACPermission, has_permissions
 from apps.schedules.constants import (
     ICAL_ATTENDEE,
     ICAL_DATETIME_END,
@@ -25,7 +26,6 @@ from apps.schedules.constants import (
     RE_PRIORITY,
 )
 from apps.schedules.ical_events import ical_events
-from common.constants.role import Role
 from common.utils import timed_lru_cache
 
 """
@@ -45,7 +45,10 @@ def users_in_ical(usernames_from_ical, organization, include_viewers=False):
 
     users_found_in_ical = organization.users
     if not include_viewers:
-        users_found_in_ical = users_found_in_ical.filter(role__in=(Role.ADMIN, Role.EDITOR))
+        # TODO: what to do here...
+        # my thought is to add a property to the user model, can_view_schedules
+        # and somehow filter those users out in the query here...
+        users_found_in_ical = users_found_in_ical.filter()
 
     users_found_in_ical = users_found_in_ical.filter(
         (Q(username__in=usernames_from_ical) | Q(email__in=usernames_from_ical))

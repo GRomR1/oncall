@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework.test import APIClient
 
 from apps.alerts.models import ResolutionNote
-from common.constants.role import Role
+from apps.api.permissions import RBACPermission
 
 
 @pytest.mark.django_db
@@ -210,21 +210,21 @@ def test_delete_resolution_note(
 )
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.ALERT_GROUPS_WRITE], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.ALERT_GROUPS_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_resolution_note_create_permissions(
     mocked_create,
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role=role)
+    _, user, token = make_organization_and_user_with_plugin_token(permissions)
     client = APIClient()
 
     url = reverse("api-internal:resolution_note-list")
@@ -243,11 +243,11 @@ def test_resolution_note_create_permissions(
 )
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.ALERT_GROUPS_WRITE], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.ALERT_GROUPS_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_resolution_note_update_permissions(
@@ -257,10 +257,10 @@ def test_resolution_note_update_permissions(
     make_alert_receive_channel,
     make_alert_group,
     make_resolution_note,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role=role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     alert_receive_channel = make_alert_receive_channel(organization)
     alert_group = make_alert_group(alert_receive_channel)
     resolution_note = make_resolution_note(
@@ -287,11 +287,11 @@ def test_resolution_note_update_permissions(
 )
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_204_NO_CONTENT),
-        (Role.EDITOR, status.HTTP_204_NO_CONTENT),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.ALERT_GROUPS_WRITE], status.HTTP_204_NO_CONTENT),
+        ([RBACPermission.Permissions.ALERT_GROUPS_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_resolution_note_delete_permissions(
@@ -301,10 +301,10 @@ def test_resolution_note_delete_permissions(
     make_alert_receive_channel,
     make_alert_group,
     make_resolution_note,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role=role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     alert_receive_channel = make_alert_receive_channel(organization)
     alert_group = make_alert_group(alert_receive_channel)
     resolution_note = make_resolution_note(
@@ -329,21 +329,21 @@ def test_resolution_note_delete_permissions(
 )
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_200_OK),
+        ([RBACPermission.Permissions.ALERT_GROUPS_READ], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.ALERT_GROUPS_WRITE], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_resolution_note_list_permissions(
     mocked_list,
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role=role)
+    _, user, token = make_organization_and_user_with_plugin_token(permissions)
     client = APIClient()
 
     url = reverse("api-internal:resolution_note-list")
@@ -361,11 +361,11 @@ def test_resolution_note_list_permissions(
 )
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_200_OK),
+        ([RBACPermission.Permissions.ALERT_GROUPS_READ], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.ALERT_GROUPS_WRITE], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_resolution_note_detail_permissions(
@@ -375,10 +375,10 @@ def test_resolution_note_detail_permissions(
     make_alert_receive_channel,
     make_alert_group,
     make_resolution_note,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role=role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     alert_receive_channel = make_alert_receive_channel(organization)
     alert_group = make_alert_group(alert_receive_channel)
     resolution_note = make_resolution_note(

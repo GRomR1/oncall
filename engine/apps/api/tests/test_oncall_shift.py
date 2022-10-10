@@ -7,8 +7,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APIClient
 
+from apps.api.permissions import RBACPermission
 from apps.schedules.models import CustomOnCallShift, OnCallSchedule, OnCallScheduleWeb
-from common.constants.role import Role
 
 
 @pytest.fixture()
@@ -902,20 +902,20 @@ def test_create_on_call_shift_override_invalid_data(on_call_shift_internal_api_s
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_201_CREATED),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.SCHEDULES_WRITE], status.HTTP_201_CREATED),
+        ([RBACPermission.Permissions.SCHEDULES_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_on_call_shift_create_permissions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
 
     client = APIClient()
 
@@ -934,11 +934,11 @@ def test_on_call_shift_create_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.SCHEDULES_WRITE], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.SCHEDULES_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_on_call_shift_update_permissions(
@@ -946,10 +946,10 @@ def test_on_call_shift_update_permissions(
     make_schedule,
     make_on_call_shift,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
 
     client = APIClient()
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
@@ -982,20 +982,20 @@ def test_on_call_shift_update_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_200_OK),
+        ([RBACPermission.Permissions.SCHEDULES_READ], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.SCHEDULES_WRITE], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_on_call_shift_list_permissions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     client = APIClient()
 
     url = reverse("api-internal:oncall_shifts-list")
@@ -1013,11 +1013,11 @@ def test_on_call_shift_list_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_200_OK),
+        ([RBACPermission.Permissions.SCHEDULES_READ], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.SCHEDULES_WRITE], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_on_call_shift_retrieve_permissions(
@@ -1025,10 +1025,10 @@ def test_on_call_shift_retrieve_permissions(
     make_schedule,
     make_on_call_shift,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
     start_date = timezone.now()
     on_call_shift = make_on_call_shift(
@@ -1056,11 +1056,11 @@ def test_on_call_shift_retrieve_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_204_NO_CONTENT),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.SCHEDULES_WRITE], status.HTTP_204_NO_CONTENT),
+        ([RBACPermission.Permissions.SCHEDULES_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_on_call_shift_delete_permissions(
@@ -1068,10 +1068,10 @@ def test_on_call_shift_delete_permissions(
     make_schedule,
     make_on_call_shift,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
     start_date = timezone.now()
     on_call_shift = make_on_call_shift(
@@ -1099,20 +1099,20 @@ def test_on_call_shift_delete_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_200_OK),
+        ([RBACPermission.Permissions.SCHEDULES_READ], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.SCHEDULES_WRITE], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_on_call_shift_frequency_options_permissions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     client = APIClient()
 
     url = reverse("api-internal:oncall_shifts-frequency-options")
@@ -1130,20 +1130,20 @@ def test_on_call_shift_frequency_options_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_200_OK),
+        ([RBACPermission.Permissions.SCHEDULES_READ], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.SCHEDULES_WRITE], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_on_call_shift_days_options_permissions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     client = APIClient()
 
     url = reverse("api-internal:oncall_shifts-days-options")
@@ -1161,21 +1161,21 @@ def test_on_call_shift_days_options_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.SCHEDULES_WRITE], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.SCHEDULES_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_on_call_shift_preview_permissions(
     make_organization_and_user_with_plugin_token,
     make_schedule,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     schedule = make_schedule(organization, schedule_class=OnCallScheduleWeb)
     start_date = timezone.now()
     client = APIClient()

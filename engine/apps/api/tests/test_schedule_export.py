@@ -3,31 +3,31 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from apps.api.permissions import RBACPermission
 from apps.auth_token.models import ScheduleExportAuthToken
 from apps.schedules.models import OnCallScheduleICal
-from common.constants.role import Role
 
 ICAL_URL = "https://calendar.google.com/calendar/ical/amixr.io_37gttuakhrtr75ano72p69rt78%40group.calendar.google.com/private-1d00a680ba5be7426c3eb3ef1616e26d/basic.ics"  # noqa
 
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.SCHEDULES_WRITE], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.SCHEDULES_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_get_schedule_export_token(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
     make_schedule,
-    role,
+    permissions,
     expected_status,
 ):
 
-    organization, user, token = make_organization_and_user_with_plugin_token(role=role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     schedule = make_schedule(
         organization,
         schedule_class=OnCallScheduleICal,
@@ -48,22 +48,22 @@ def test_get_schedule_export_token(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_404_NOT_FOUND),
-        (Role.EDITOR, status.HTTP_404_NOT_FOUND),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.SCHEDULES_WRITE], status.HTTP_404_NOT_FOUND),
+        ([RBACPermission.Permissions.SCHEDULES_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_schedule_export_token_not_found(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
     make_schedule,
-    role,
+    permissions,
     expected_status,
 ):
 
-    organization, user, token = make_organization_and_user_with_plugin_token(role=role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     schedule = make_schedule(
         organization,
         schedule_class=OnCallScheduleICal,
@@ -82,22 +82,22 @@ def test_schedule_export_token_not_found(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_201_CREATED),
-        (Role.EDITOR, status.HTTP_201_CREATED),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.SCHEDULES_WRITE], status.HTTP_201_CREATED),
+        ([RBACPermission.Permissions.SCHEDULES_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_schedule_create_export_token(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
     make_schedule,
-    role,
+    permissions,
     expected_status,
 ):
 
-    organization, user, token = make_organization_and_user_with_plugin_token(role=role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     schedule = make_schedule(
         organization,
         schedule_class=OnCallScheduleICal,
@@ -116,22 +116,21 @@ def test_schedule_create_export_token(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_204_NO_CONTENT),
-        (Role.EDITOR, status.HTTP_204_NO_CONTENT),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.SCHEDULES_WRITE], status.HTTP_204_NO_CONTENT),
+        ([RBACPermission.Permissions.SCHEDULES_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_schedule_delete_export_token(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
     make_schedule,
-    role,
+    permissions,
     expected_status,
 ):
-
-    organization, user, token = make_organization_and_user_with_plugin_token(role=role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     schedule = make_schedule(
         organization,
         schedule_class=OnCallScheduleICal,

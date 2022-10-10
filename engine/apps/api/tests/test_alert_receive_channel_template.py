@@ -6,26 +6,26 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APIClient
 
-from common.constants.role import Role
+from apps.api.permissions import RBACPermission
 
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.INTEGRATIONS_WRITE], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.INTEGRATIONS_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_receive_channel_template_update_permissions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
     make_alert_receive_channel,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role=role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions=permissions)
     alert_receive_channel = make_alert_receive_channel(organization)
     client = APIClient()
 
@@ -45,21 +45,21 @@ def test_alert_receive_channel_template_update_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_200_OK),
+        ([RBACPermission.Permissions.INTEGRATIONS_READ], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.INTEGRATIONS_WRITE], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_alert_receive_channel_template_detail_permissions(
     make_organization_and_user_with_plugin_token,
     make_user_auth_headers,
     make_alert_receive_channel,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role=role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions=permissions)
     alert_receive_channel = make_alert_receive_channel(organization)
     client = APIClient()
 
@@ -82,7 +82,7 @@ def test_alert_receive_channel_template_include_additional_backend_templates(
     make_user_auth_headers,
     make_alert_receive_channel,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role=Role.ADMIN)
+    organization, user, token = make_organization_and_user_with_plugin_token()
     alert_receive_channel = make_alert_receive_channel(
         organization,
         messaging_backends_templates={"TESTONLY": {"title": "the-title", "message": "the-message", "image_url": "url"}},
@@ -108,7 +108,7 @@ def test_alert_receive_channel_template_include_additional_backend_templates_usi
     make_user_auth_headers,
     make_alert_receive_channel,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role=Role.ADMIN)
+    organization, user, token = make_organization_and_user_with_plugin_token()
     alert_receive_channel = make_alert_receive_channel(organization, messaging_backends_templates=None)
     client = APIClient()
 
@@ -137,7 +137,7 @@ def test_update_alert_receive_channel_backend_template_invalid_template(
     make_user_auth_headers,
     make_alert_receive_channel,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role=Role.ADMIN)
+    organization, user, token = make_organization_and_user_with_plugin_token()
     alert_receive_channel = make_alert_receive_channel(organization, messaging_backends_templates=None)
     client = APIClient()
 
@@ -159,7 +159,7 @@ def test_update_alert_receive_channel_backend_template_invalid_url(
     make_user_auth_headers,
     make_alert_receive_channel,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role=Role.ADMIN)
+    organization, user, token = make_organization_and_user_with_plugin_token()
     alert_receive_channel = make_alert_receive_channel(organization, messaging_backends_templates=None)
     client = APIClient()
 
@@ -181,7 +181,7 @@ def test_update_alert_receive_channel_backend_template_empty_values_allowed(
     make_user_auth_headers,
     make_alert_receive_channel,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role=Role.ADMIN)
+    organization, user, token = make_organization_and_user_with_plugin_token()
     alert_receive_channel = make_alert_receive_channel(organization, messaging_backends_templates=None)
     client = APIClient()
 
@@ -207,7 +207,7 @@ def test_update_alert_receive_channel_backend_template_update_values(
     make_user_auth_headers,
     make_alert_receive_channel,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role=Role.ADMIN)
+    organization, user, token = make_organization_and_user_with_plugin_token()
     alert_receive_channel = make_alert_receive_channel(
         organization,
         messaging_backends_templates={
@@ -248,7 +248,7 @@ def test_preview_alert_receive_channel_backend_templater(
     make_alert_group,
     make_alert,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role=Role.ADMIN)
+    organization, user, token = make_organization_and_user_with_plugin_token()
     alert_receive_channel = make_alert_receive_channel(organization)
     default_channel_filter = make_channel_filter(alert_receive_channel, is_default=True)
     alert_group = make_alert_group(alert_receive_channel, channel_filter=default_channel_filter)

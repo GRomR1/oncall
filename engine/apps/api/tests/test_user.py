@@ -8,10 +8,9 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APIClient
 
-from apps.base.constants import ADMIN_PERMISSIONS, EDITOR_PERMISSIONS
+from apps.api.permissions import RBACPermission
 from apps.base.models import UserNotificationPolicy
 from apps.user_management.models.user import default_working_hours
-from common.constants.role import Role
 
 
 @pytest.mark.django_db
@@ -68,7 +67,6 @@ def test_update_user_cant_change_email_and_username(
         "email": admin.email,
         "hide_phone_number": False,
         "username": admin.username,
-        "role": admin.role,
         "timezone": None,
         "working_hours": default_working_hours(),
         "unverified_phone_number": phone_number,
@@ -80,7 +78,6 @@ def test_update_user_cant_change_email_and_username(
             }
         },
         "cloud_connection_status": 0,
-        "permissions": ADMIN_PERMISSIONS,
         "notification_chain_verbal": {"default": "", "important": ""},
         "slack_user_identity": None,
         "avatar": admin.avatar_url,
@@ -99,7 +96,7 @@ def test_list_users(
 ):
     organization = make_organization()
     admin = make_user_for_organization(organization)
-    editor = make_user_for_organization(organization, role=Role.EDITOR)
+    editor = make_user_for_organization(organization)
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -117,7 +114,6 @@ def test_list_users(
                 "email": admin.email,
                 "hide_phone_number": False,
                 "username": admin.username,
-                "role": admin.role,
                 "timezone": None,
                 "working_hours": default_working_hours(),
                 "unverified_phone_number": None,
@@ -128,7 +124,6 @@ def test_list_users(
                         "user": admin.username,
                     }
                 },
-                "permissions": ADMIN_PERMISSIONS,
                 "notification_chain_verbal": {"default": "", "important": ""},
                 "slack_user_identity": None,
                 "avatar": admin.avatar_url,
@@ -141,7 +136,6 @@ def test_list_users(
                 "email": editor.email,
                 "hide_phone_number": False,
                 "username": editor.username,
-                "role": editor.role,
                 "timezone": None,
                 "working_hours": default_working_hours(),
                 "unverified_phone_number": None,
@@ -152,7 +146,6 @@ def test_list_users(
                         "user": editor.username,
                     }
                 },
-                "permissions": EDITOR_PERMISSIONS,
                 "notification_chain_verbal": {"default": "", "important": ""},
                 "slack_user_identity": None,
                 "avatar": editor.avatar_url,
@@ -227,11 +220,11 @@ def test_notification_chain_verbal(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.USER_SETTINGS_WRITE], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.USER_SETTINGS_ADMIN], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.USER_SETTINGS_READ], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_update_self_permissions(
@@ -239,11 +232,11 @@ def test_user_update_self_permissions(
     make_user_for_organization,
     make_token_for_organization,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
     organization = make_organization()
-    tester = make_user_for_organization(organization, role=role)
+    tester = make_user_for_organization(organization, permissions=permissions)
     _, token = make_token_for_organization(organization)
     client = APIClient()
     url = reverse("api-internal:user-detail", kwargs={"pk": tester.public_primary_key})
@@ -260,11 +253,18 @@ def test_user_update_self_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        (
+            [
+                RBACPermission.Permissions.USER_SETTINGS_WRITE,
+                RBACPermission.Permissions.USER_SETTINGS_ADMIN,
+            ],
+            status.HTTP_200_OK,
+        ),
+        ([RBACPermission.Permissions.USER_SETTINGS_ADMIN], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.USER_SETTINGS_WRITE], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.USER_SETTINGS_READ], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_update_other_permissions(
@@ -272,12 +272,12 @@ def test_user_update_other_permissions(
     make_user_for_organization,
     make_token_for_organization,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
     organization = make_organization()
     admin = make_user_for_organization(organization)
-    tester = make_user_for_organization(organization, role=role)
+    tester = make_user_for_organization(organization, permissions)
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -291,11 +291,11 @@ def test_user_update_other_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.USER_SETTINGS_WRITE], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.USER_SETTINGS_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.USER_SETTINGS_ADMIN], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_list_permissions(
@@ -303,11 +303,11 @@ def test_user_list_permissions(
     make_user_for_organization,
     make_token_for_organization,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
     organization = make_organization()
-    tester = make_user_for_organization(organization, role=role)
+    tester = make_user_for_organization(organization, permissions)
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -325,11 +325,11 @@ def test_user_list_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_200_OK),
+        ([RBACPermission.Permissions.USER_SETTINGS_READ], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.USER_SETTINGS_WRITE], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.USER_SETTINGS_ADMIN], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_detail_self_permissions(
@@ -337,11 +337,11 @@ def test_user_detail_self_permissions(
     make_user_for_organization,
     make_token_for_organization,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
     organization = make_organization()
-    tester = make_user_for_organization(organization, role=role)
+    tester = make_user_for_organization(organization, permissions)
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -359,11 +359,18 @@ def test_user_detail_self_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        (
+            [
+                RBACPermission.Permissions.USER_SETTINGS_READ,
+                RBACPermission.Permissions.USER_SETTINGS_ADMIN,
+            ],
+            status.HTTP_200_OK,
+        ),
+        ([RBACPermission.Permissions.USER_SETTINGS_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.USER_SETTINGS_ADMIN], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.USER_SETTINGS_WRITE], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_detail_other_permissions(
@@ -371,12 +378,12 @@ def test_user_detail_other_permissions(
     make_user_for_organization,
     make_token_for_organization,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
     organization = make_organization()
     admin = make_user_for_organization(organization)
-    tester = make_user_for_organization(organization, role=role)
+    tester = make_user_for_organization(organization, permissions)
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -388,11 +395,11 @@ def test_user_detail_other_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.USER_SETTINGS_WRITE], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.USER_SETTINGS_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.USER_SETTINGS_ADMIN], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_get_own_verification_code(
@@ -400,11 +407,11 @@ def test_user_get_own_verification_code(
     make_user_for_organization,
     make_token_for_organization,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
     organization = make_organization()
-    tester = make_user_for_organization(organization, role=role)
+    tester = make_user_for_organization(organization, permissions)
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -422,11 +429,18 @@ def test_user_get_own_verification_code(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        (
+            [
+                RBACPermission.Permissions.USER_SETTINGS_WRITE,
+                RBACPermission.Permissions.USER_SETTINGS_ADMIN,
+            ],
+            status.HTTP_200_OK,
+        ),
+        ([RBACPermission.Permissions.USER_SETTINGS_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.USER_SETTINGS_ADMIN], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.USER_SETTINGS_WRITE], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_get_other_verification_code(
@@ -434,12 +448,12 @@ def test_user_get_other_verification_code(
     make_user_for_organization,
     make_token_for_organization,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
     organization = make_organization()
     admin = make_user_for_organization(organization)
-    tester = make_user_for_organization(organization, role=role)
+    tester = make_user_for_organization(organization, permissions)
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -452,11 +466,11 @@ def test_user_get_other_verification_code(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.USER_SETTINGS_WRITE], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.USER_SETTINGS_ADMIN], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.USER_SETTINGS_READ], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_verify_own_phone(
@@ -464,11 +478,11 @@ def test_user_verify_own_phone(
     make_user_for_organization,
     make_token_for_organization,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
     organization = make_organization()
-    tester = make_user_for_organization(organization, role=role)
+    tester = make_user_for_organization(organization, permissions)
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -491,11 +505,15 @@ Tests below are outdated
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        (
+            [RBACPermission.Permissions.USER_SETTINGS_ADMIN, RBACPermission.Permissions.USER_SETTINGS_WRITE],
+            status.HTTP_200_OK,
+        ),
+        ([RBACPermission.Permissions.USER_SETTINGS_ADMIN], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.USER_SETTINGS_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.USER_SETTINGS_WRITE], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_verify_another_phone(
@@ -503,12 +521,12 @@ def test_user_verify_another_phone(
     make_user_for_organization,
     make_token_for_organization,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
     organization = make_organization()
-    tester = make_user_for_organization(organization, role=role)
-    other_user = make_user_for_organization(organization, role=Role.EDITOR)
+    tester = make_user_for_organization(organization, permissions)
+    other_user = make_user_for_organization(organization, permissions=[])
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -522,11 +540,11 @@ def test_user_verify_another_phone(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.USER_SETTINGS_WRITE], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.USER_SETTINGS_ADMIN], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.USER_SETTINGS_READ], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_get_own_telegram_verification_code(
@@ -534,11 +552,11 @@ def test_user_get_own_telegram_verification_code(
     make_user_for_organization,
     make_token_for_organization,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
     organization = make_organization()
-    tester = make_user_for_organization(organization, role=role)
+    tester = make_user_for_organization(organization, permissions)
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -550,11 +568,15 @@ def test_user_get_own_telegram_verification_code(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        (
+            [RBACPermission.Permissions.USER_SETTINGS_ADMIN, RBACPermission.Permissions.USER_SETTINGS_WRITE],
+            status.HTTP_200_OK,
+        ),
+        ([RBACPermission.Permissions.USER_SETTINGS_ADMIN], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.USER_SETTINGS_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.USER_SETTINGS_WRITE], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_user_get_another_telegram_verification_code(
@@ -562,12 +584,12 @@ def test_user_get_another_telegram_verification_code(
     make_user_for_organization,
     make_token_for_organization,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
     organization = make_organization()
-    tester = make_user_for_organization(organization, role=role)
-    other_user = make_user_for_organization(organization, role=Role.EDITOR)
+    tester = make_user_for_organization(organization, permissions)
+    other_user = make_user_for_organization(organization, permissions=[])
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -582,14 +604,13 @@ def test_admin_can_update_user(
     make_organization, make_user_for_organization, make_token_for_organization, make_user_auth_headers
 ):
     organization = make_organization()
-    tester = make_user_for_organization(organization, role=Role.ADMIN)
-    other_user = make_user_for_organization(organization, role=Role.EDITOR)
+    tester = make_user_for_organization(organization)
+    other_user = make_user_for_organization(organization, permissions=[])
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
     data = {
         "email": "test@amixr.io",
-        "role": Role.ADMIN,
         "username": "updated_test_username",
         "unverified_phone_number": "+1234567890",
         "slack_login": "",
@@ -605,13 +626,12 @@ def test_admin_can_update_himself(
     make_organization, make_user_for_organization, make_token_for_organization, make_user_auth_headers
 ):
     organization = make_organization()
-    admin = make_user_for_organization(organization, role=Role.ADMIN)
+    admin = make_user_for_organization(organization)
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
     data = {
         "email": "test@amixr.io",
-        "role": Role.ADMIN,
         "username": "updated_test_username",
         "unverified_phone_number": "+1234567890",
         "slack_login": "",
@@ -628,7 +648,7 @@ def test_admin_can_list_users(
     make_organization, make_user_for_organization, make_token_for_organization, make_user_auth_headers
 ):
     organization = make_organization()
-    admin = make_user_for_organization(organization, role=Role.ADMIN)
+    admin = make_user_for_organization(organization)
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -644,8 +664,8 @@ def test_admin_can_detail_users(
     make_organization, make_user_for_organization, make_token_for_organization, make_user_auth_headers
 ):
     organization = make_organization()
-    admin = make_user_for_organization(organization, role=Role.ADMIN)
-    editor = make_user_for_organization(organization, role=Role.EDITOR)
+    admin = make_user_for_organization(organization)
+    editor = make_user_for_organization(organization, permissions=[])
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -666,7 +686,7 @@ def test_admin_can_get_own_verification_code(
     make_user_auth_headers,
 ):
     organization = make_organization()
-    admin = make_user_for_organization(organization, role=Role.ADMIN)
+    admin = make_user_for_organization(organization)
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -686,8 +706,8 @@ def test_admin_can_get_another_user_verification_code(
     make_user_auth_headers,
 ):
     organization = make_organization()
-    admin = make_user_for_organization(organization, role=Role.ADMIN)
-    editor = make_user_for_organization(organization, role=Role.EDITOR)
+    admin = make_user_for_organization(organization)
+    editor = make_user_for_organization(organization, permissions=[])
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -706,7 +726,7 @@ def test_admin_can_verify_own_phone(
     make_user_auth_headers,
 ):
     organization = make_organization()
-    admin = make_user_for_organization(organization, role=Role.ADMIN)
+    admin = make_user_for_organization(organization)
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -726,8 +746,8 @@ def test_admin_can_verify_another_user_phone(
     make_user_auth_headers,
 ):
     organization = make_organization()
-    admin = make_user_for_organization(organization, role=Role.ADMIN)
-    editor = make_user_for_organization(organization, role=Role.EDITOR)
+    admin = make_user_for_organization(organization)
+    editor = make_user_for_organization(organization, permissions=[])
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -742,7 +762,7 @@ def test_admin_can_get_own_telegram_verification_code(
     make_organization, make_user_for_organization, make_token_for_organization, make_user_auth_headers
 ):
     organization = make_organization()
-    admin = make_user_for_organization(organization, role=Role.ADMIN)
+    admin = make_user_for_organization(organization)
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -757,8 +777,8 @@ def test_admin_can_get_another_user_telegram_verification_code(
     make_organization, make_user_for_organization, make_token_for_organization, make_user_auth_headers
 ):
     organization = make_organization()
-    admin = make_user_for_organization(organization, role=Role.ADMIN)
-    editor = make_user_for_organization(organization, role=Role.EDITOR)
+    admin = make_user_for_organization(organization)
+    editor = make_user_for_organization(organization, permissions=[])
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -773,8 +793,8 @@ def test_admin_can_get_another_user_backend_verification_code(
     make_organization, make_user_for_organization, make_token_for_organization, make_user_auth_headers
 ):
     organization = make_organization()
-    admin = make_user_for_organization(organization, role=Role.ADMIN)
-    editor = make_user_for_organization(organization, role=Role.EDITOR)
+    admin = make_user_for_organization(organization)
+    editor = make_user_for_organization(organization, permissions=[])
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -792,8 +812,8 @@ def test_admin_can_unlink_another_user_backend_account(
     make_organization, make_user_for_organization, make_token_for_organization, make_user_auth_headers
 ):
     organization = make_organization()
-    admin = make_user_for_organization(organization, role=Role.ADMIN)
-    editor = make_user_for_organization(organization, role=Role.EDITOR)
+    admin = make_user_for_organization(organization)
+    editor = make_user_for_organization(organization, permissions=[])
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -812,9 +832,9 @@ def test_admin_can_unlink_another_user_slack_account(
     make_user_auth_headers,
 ):
     organization, slack_team_identity = make_organization_with_slack_team_identity()
-    admin = make_user_for_organization(organization, role=Role.ADMIN)
+    admin = make_user_for_organization(organization)
     editor, slack_user_identity_1 = make_user_with_slack_user_identity(
-        slack_team_identity, organization, slack_id="user_1", role=Role.EDITOR
+        slack_team_identity, organization, slack_id="user_1", permissions=[]
     )
 
     _, token = make_token_for_organization(organization)
@@ -835,14 +855,14 @@ def test_user_cant_update_user(
     make_organization, make_user_for_organization, make_token_for_organization, make_user_auth_headers
 ):
     organization = make_organization()
-    first_user = make_user_for_organization(organization, role=Role.EDITOR)
-    second_user = make_user_for_organization(organization, role=Role.EDITOR)
+    # TODO:..
+    first_user = make_user_for_organization(organization, permissions=[])
+    second_user = make_user_for_organization(organization, permissions=[])
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
     data = {
         "email": "test@amixr.io",
-        "role": Role.ADMIN,
         "username": "updated_test_username",
         "unverified_phone_number": "+1234567890",
         "slack_login": "",
@@ -858,13 +878,12 @@ def test_user_can_update_themself(
     make_organization, make_user_for_organization, make_token_for_organization, make_user_auth_headers
 ):
     organization = make_organization()
-    user = make_user_for_organization(organization, role=Role.EDITOR)
+    user = make_user_for_organization(organization, permissions=[RBACPermission.Permissions.USER_SETTINGS_WRITE])
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
     data = {
         "email": "test@amixr.io",
-        "role": Role.EDITOR,
         "username": "updated_test_username",
         "unverified_phone_number": "+1234567890",
         "slack_login": "",
@@ -881,7 +900,7 @@ def test_user_can_list_users(
     make_organization, make_user_for_organization, make_token_for_organization, make_user_auth_headers
 ):
     organization = make_organization()
-    editor = make_user_for_organization(organization, role=Role.EDITOR)
+    editor = make_user_for_organization(organization, permissions=[RBACPermission.Permissions.USER_SETTINGS_WRITE])
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -897,8 +916,8 @@ def test_user_can_detail_users(
     make_organization, make_user_for_organization, make_token_for_organization, make_user_auth_headers
 ):
     organization = make_organization()
-    admin = make_user_for_organization(organization, role=Role.ADMIN)
-    editor = make_user_for_organization(organization, role=Role.EDITOR)
+    admin = make_user_for_organization(organization)
+    editor = make_user_for_organization(organization, permissions=[RBACPermission.Permissions.USER_SETTINGS_WRITE])
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -918,7 +937,7 @@ def test_user_can_get_own_verification_code(
     make_user_auth_headers,
 ):
     organization = make_organization()
-    user = make_user_for_organization(organization, role=Role.EDITOR)
+    user = make_user_for_organization(organization, permissions=[RBACPermission.Permissions.USER_SETTINGS_WRITE])
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -938,8 +957,9 @@ def test_user_cant_get_another_user_verification_code(
     make_user_auth_headers,
 ):
     organization = make_organization()
-    first_user = make_user_for_organization(organization, role=Role.EDITOR)
-    second_user = make_user_for_organization(organization, role=Role.EDITOR)
+    # TODO:
+    first_user = make_user_for_organization(organization, permissions=[])
+    second_user = make_user_for_organization(organization, permissions=[])
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -959,7 +979,7 @@ def test_user_can_verify_own_phone(
     make_user_auth_headers,
 ):
     organization = make_organization()
-    user = make_user_for_organization(organization, role=Role.EDITOR)
+    user = make_user_for_organization(organization, permissions=[RBACPermission.Permissions.USER_SETTINGS_WRITE])
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -979,8 +999,8 @@ def test_user_cant_verify_another_user_phone(
     make_user_auth_headers,
 ):
     organization = make_organization()
-    first_user = make_user_for_organization(organization, role=Role.EDITOR)
-    second_user = make_user_for_organization(organization, role=Role.EDITOR)
+    first_user = make_user_for_organization(organization, permissions=[])
+    second_user = make_user_for_organization(organization, permissions=[])
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -995,7 +1015,7 @@ def test_user_can_get_own_telegram_verification_code(
     make_organization, make_user_for_organization, make_token_for_organization, make_user_auth_headers
 ):
     organization = make_organization()
-    user = make_user_for_organization(organization, role=Role.EDITOR)
+    user = make_user_for_organization(organization, permissions=[RBACPermission.Permissions.USER_SETTINGS_WRITE])
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -1010,8 +1030,8 @@ def test_user_cant_get_another_user_telegram_verification_code(
     make_organization, make_user_for_organization, make_token_for_organization, make_user_auth_headers
 ):
     organization = make_organization()
-    first_user = make_user_for_organization(organization, role=Role.EDITOR)
-    second_user = make_user_for_organization(organization, role=Role.EDITOR)
+    first_user = make_user_for_organization(organization, permissions=[])
+    second_user = make_user_for_organization(organization, permissions=[])
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -1026,7 +1046,7 @@ def test_user_can_get_own_backend_verification_code(
     make_organization, make_user_for_organization, make_token_for_organization, make_user_auth_headers
 ):
     organization = make_organization()
-    user = make_user_for_organization(organization, role=Role.EDITOR)
+    user = make_user_for_organization(organization, permissions=[RBACPermission.Permissions.USER_SETTINGS_WRITE])
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -1051,8 +1071,8 @@ def test_user_cant_get_another_user_backend_verification_code(
     make_organization, make_user_for_organization, make_token_for_organization, make_user_auth_headers
 ):
     organization = make_organization()
-    first_user = make_user_for_organization(organization, role=Role.EDITOR)
-    second_user = make_user_for_organization(organization, role=Role.EDITOR)
+    first_user = make_user_for_organization(organization, permissions=[])
+    second_user = make_user_for_organization(organization, permissions=[])
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -1073,8 +1093,11 @@ def test_user_can_unlink_own_slack_account(
     make_user_auth_headers,
 ):
     organization, slack_team_identity = make_organization_with_slack_team_identity()
-    user, slack_user_identity_1 = make_user_with_slack_user_identity(
-        slack_team_identity, organization, slack_id="user_1", role=Role.EDITOR
+    user, _ = make_user_with_slack_user_identity(
+        slack_team_identity,
+        organization,
+        slack_id="user_1",
+        permissions=[RBACPermission.Permissions.USER_SETTINGS_WRITE],
     )
 
     _, token = make_token_for_organization(organization)
@@ -1092,7 +1115,7 @@ def test_user_can_unlink_backend_own_account(
     make_organization, make_user_for_organization, make_token_for_organization, make_user_auth_headers
 ):
     organization = make_organization()
-    user = make_user_for_organization(organization, role=Role.EDITOR)
+    user = make_user_for_organization(organization, permissions=[RBACPermission.Permissions.USER_SETTINGS_WRITE])
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -1108,7 +1131,7 @@ def test_user_unlink_backend_invalid_backend_id(
     make_organization, make_user_for_organization, make_token_for_organization, make_user_auth_headers
 ):
     organization = make_organization()
-    user = make_user_for_organization(organization, role=Role.EDITOR)
+    user = make_user_for_organization(organization, permissions=[RBACPermission.Permissions.USER_SETTINGS_WRITE])
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -1124,7 +1147,7 @@ def test_user_unlink_backend_backend_account_not_found(
     make_organization, make_user_for_organization, make_token_for_organization, make_user_auth_headers
 ):
     organization = make_organization()
-    user = make_user_for_organization(organization, role=Role.EDITOR)
+    user = make_user_for_organization(organization, permissions=[RBACPermission.Permissions.USER_SETTINGS_WRITE])
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -1144,10 +1167,10 @@ def test_user_cant_unlink_slack_another_user(
 ):
     organization, slack_team_identity = make_organization_with_slack_team_identity()
     first_user, slack_user_identity_1 = make_user_with_slack_user_identity(
-        slack_team_identity, organization, slack_id="user_1", role=Role.EDITOR
+        slack_team_identity, organization, slack_id="user_1", permissions=[]
     )
     second_user, slack_user_identity_2 = make_user_with_slack_user_identity(
-        slack_team_identity, organization, slack_id="user_2", role=Role.EDITOR
+        slack_team_identity, organization, slack_id="user_2", permissions=[]
     )
 
     _, token = make_token_for_organization(organization)
@@ -1165,8 +1188,8 @@ def test_user_cant_unlink_backend__another_user(
     make_organization, make_user_for_organization, make_token_for_organization, make_user_auth_headers
 ):
     organization = make_organization()
-    first_user = make_user_for_organization(organization, role=Role.EDITOR)
-    second_user = make_user_for_organization(organization, role=Role.EDITOR)
+    first_user = make_user_for_organization(organization, permissions=[])
+    second_user = make_user_for_organization(organization, permissions=[])
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -1182,39 +1205,16 @@ def test_user_cant_unlink_backend__another_user(
 
 
 @pytest.mark.django_db
-def test_viewer_cant_create_user(
-    make_organization, make_user_for_organization, make_token_for_organization, make_user_auth_headers
-):
-    organization = make_organization()
-    user = make_user_for_organization(organization, role=Role.VIEWER)
-    _, token = make_token_for_organization(organization)
-
-    client = APIClient()
-    url = reverse("api-internal:user-list")
-    data = {
-        "email": "test@amixr.io",
-        "role": Role.ADMIN,
-        "username": "test_username",
-        "unverified_phone_number": None,
-        "slack_login": "",
-    }
-    response = client.post(url, format="json", data=data, **make_user_auth_headers(user, token))
-
-    assert response.status_code == status.HTTP_403_FORBIDDEN
-
-
-@pytest.mark.django_db
 def test_viewer_cant_update_user(
     make_organization, make_user_for_organization, make_token_for_organization, make_user_auth_headers
 ):
     organization = make_organization()
-    first_user = make_user_for_organization(organization, role=Role.EDITOR)
-    second_user = make_user_for_organization(organization, role=Role.VIEWER)
+    first_user = make_user_for_organization(organization, permissions=[])
+    second_user = make_user_for_organization(organization, permissions=[])
     _, token = make_token_for_organization(organization)
 
     data = {
         "email": "test@amixr.io",
-        "role": Role.EDITOR,
         "username": "updated_test_username",
         "unverified_phone_number": "+1234567890",
         "slack_login": "",
@@ -1232,12 +1232,11 @@ def test_viewer_cant_update_himself(
     make_organization, make_user_for_organization, make_token_for_organization, make_user_auth_headers
 ):
     organization = make_organization()
-    user = make_user_for_organization(organization, role=Role.VIEWER)
+    user = make_user_for_organization(organization, permissions=[])
     _, token = make_token_for_organization(organization)
 
     data = {
         "email": "test@amixr.io",
-        "role": Role.VIEWER,
         "username": "updated_test_username",
         "unverified_phone_number": "+1234567890",
         "slack_login": "",
@@ -1255,7 +1254,7 @@ def test_viewer_cant_list_users(
     make_organization, make_user_for_organization, make_token_for_organization, make_user_auth_headers
 ):
     organization = make_organization()
-    user = make_user_for_organization(organization, role=Role.VIEWER)
+    user = make_user_for_organization(organization, permissions=[])
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -1270,8 +1269,8 @@ def test_viewer_cant_detail_users(
     make_organization, make_user_for_organization, make_token_for_organization, make_user_auth_headers
 ):
     organization = make_organization()
-    first_user = make_user_for_organization(organization, role=Role.EDITOR)
-    second_user = make_user_for_organization(organization, role=Role.VIEWER)
+    first_user = make_user_for_organization(organization, permissions=[])
+    second_user = make_user_for_organization(organization, permissions=[])
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -1291,7 +1290,7 @@ def test_viewer_cant_get_own_verification_code(
     make_user_auth_headers,
 ):
     organization = make_organization()
-    user = make_user_for_organization(organization, role=Role.VIEWER)
+    user = make_user_for_organization(organization, permissions=[])
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -1311,8 +1310,8 @@ def test_viewer_cant_get_another_user_verification_code(
     make_user_auth_headers,
 ):
     organization = make_organization()
-    first_user = make_user_for_organization(organization, role=Role.EDITOR)
-    second_user = make_user_for_organization(organization, role=Role.VIEWER)
+    first_user = make_user_for_organization(organization, permissions=[])
+    second_user = make_user_for_organization(organization, permissions=[])
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -1332,7 +1331,7 @@ def test_viewer_cant_verify_own_phone(
     make_user_auth_headers,
 ):
     organization = make_organization()
-    user = make_user_for_organization(organization, role=Role.VIEWER)
+    user = make_user_for_organization(organization, permissions=[])
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -1352,8 +1351,8 @@ def test_viewer_cant_verify_another_user_phone(
     make_user_auth_headers,
 ):
     organization = make_organization()
-    first_user = make_user_for_organization(organization, role=Role.EDITOR)
-    second_user = make_user_for_organization(organization, role=Role.VIEWER)
+    first_user = make_user_for_organization(organization, permissions=[])
+    second_user = make_user_for_organization(organization, permissions=[])
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -1368,7 +1367,7 @@ def test_viewer_cant_get_own_telegram_verification_code(
     make_organization, make_user_for_organization, make_token_for_organization, make_user_auth_headers
 ):
     organization = make_organization()
-    user = make_user_for_organization(organization, role=Role.VIEWER)
+    user = make_user_for_organization(organization, permissions=[])
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -1383,8 +1382,9 @@ def test_viewer_cant_get_another_user_telegram_verification_code(
     make_organization, make_user_for_organization, make_token_for_organization, make_user_auth_headers
 ):
     organization = make_organization()
-    first_user = make_user_for_organization(organization, role=Role.EDITOR)
-    second_user = make_user_for_organization(organization, role=Role.VIEWER)
+    # TODO:..
+    first_user = make_user_for_organization(organization, permissions=[])
+    second_user = make_user_for_organization(organization, permissions=[])
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -1396,14 +1396,16 @@ def test_viewer_cant_get_another_user_telegram_verification_code(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status,initial_unverified_number,initial_verified_number",
+    "permissions,expected_status,initial_unverified_number,initial_verified_number",
     [
-        (Role.ADMIN, status.HTTP_200_OK, "+1234567890", None),
-        (Role.EDITOR, status.HTTP_200_OK, "+1234567890", None),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN, "+1234567890", None),
-        (Role.ADMIN, status.HTTP_200_OK, None, "+1234567890"),
-        (Role.EDITOR, status.HTTP_200_OK, None, "+1234567890"),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN, None, "+1234567890"),
+        ([RBACPermission.Permissions.USER_SETTINGS_WRITE], status.HTTP_200_OK, "+1234567890", None),
+        # must have both "Admin" and "Write"
+        ([RBACPermission.Permissions.USER_SETTINGS_ADMIN], status.HTTP_403_FORBIDDEN, "+1234567890", None),
+        ([RBACPermission.Permissions.USER_SETTINGS_READ], status.HTTP_403_FORBIDDEN, "+1234567890", None),
+        ([RBACPermission.Permissions.USER_SETTINGS_WRITE], status.HTTP_200_OK, None, "+1234567890"),
+        # must have both "Admin" and "Write"
+        ([RBACPermission.Permissions.USER_SETTINGS_ADMIN], status.HTTP_403_FORBIDDEN, None, "+1234567890"),
+        ([RBACPermission.Permissions.USER_SETTINGS_READ], status.HTTP_403_FORBIDDEN, None, "+1234567890"),
     ],
 )
 def test_forget_own_number(
@@ -1412,16 +1414,16 @@ def test_forget_own_number(
     make_user_for_organization,
     make_token_for_organization,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
     initial_unverified_number,
     initial_verified_number,
 ):
     organization = make_organization()
-    admin = make_user_for_organization(organization, role=Role.ADMIN)
+    admin = make_user_for_organization(organization)
     user = make_user_for_organization(
         organization,
-        role=role,
+        permissions=permissions,
         unverified_phone_number=initial_unverified_number,
         _verified_phone_number=initial_verified_number,
     )
@@ -1448,14 +1450,25 @@ def test_forget_own_number(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status,initial_unverified_number,initial_verified_number",
+    "permissions,expected_status,initial_unverified_number,initial_verified_number",
     [
-        (Role.ADMIN, status.HTTP_200_OK, "+1234567890", None),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN, "+1234567890", None),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN, "+1234567890", None),
-        (Role.ADMIN, status.HTTP_200_OK, None, "+1234567890"),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN, None, "+1234567890"),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN, None, "+1234567890"),
+        (
+            [RBACPermission.Permissions.USER_SETTINGS_WRITE, RBACPermission.Permissions.USER_SETTINGS_ADMIN],
+            status.HTTP_200_OK,
+            "+1234567890",
+            None,
+        ),
+        ([RBACPermission.Permissions.USER_SETTINGS_ADMIN], status.HTTP_403_FORBIDDEN, "+1234567890", None),
+        ([RBACPermission.Permissions.USER_SETTINGS_WRITE], status.HTTP_403_FORBIDDEN, "+1234567890", None),
+        ([RBACPermission.Permissions.USER_SETTINGS_READ], status.HTTP_403_FORBIDDEN, "+1234567890", None),
+        (
+            [RBACPermission.Permissions.USER_SETTINGS_WRITE, RBACPermission.Permissions.USER_SETTINGS_ADMIN],
+            status.HTTP_200_OK,
+            None,
+            "+1234567890",
+        ),
+        ([RBACPermission.Permissions.USER_SETTINGS_WRITE], status.HTTP_403_FORBIDDEN, None, "+1234567890"),
+        ([RBACPermission.Permissions.USER_SETTINGS_READ], status.HTTP_403_FORBIDDEN, None, "+1234567890"),
     ],
 )
 def test_forget_other_number(
@@ -1464,32 +1477,30 @@ def test_forget_other_number(
     make_user_for_organization,
     make_token_for_organization,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
     initial_unverified_number,
     initial_verified_number,
 ):
     organization = make_organization()
-    user = make_user_for_organization(
-        organization,
-        role=Role.ADMIN,
-        unverified_phone_number=initial_unverified_number,
-        _verified_phone_number=initial_verified_number,
+    admin = make_user_for_organization(
+        organization, unverified_phone_number=initial_unverified_number, _verified_phone_number=initial_verified_number
     )
-    other_user = make_user_for_organization(organization, role=role)
+    other_user = make_user_for_organization(organization, permissions)
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
-    url = reverse("api-internal:user-forget-number", kwargs={"pk": user.public_primary_key})
+    url = reverse("api-internal:user-forget-number", kwargs={"pk": admin.public_primary_key})
     with patch(
         "apps.twilioapp.phone_manager.PhoneManager.notify_about_changed_verified_phone_number", return_value=None
     ):
         response = client.put(url, None, format="json", **make_user_auth_headers(other_user, token))
         assert response.status_code == expected_status
 
-    user_detail_url = reverse("api-internal:user-detail", kwargs={"pk": user.public_primary_key})
-    response = client.get(user_detail_url, None, format="json", **make_user_auth_headers(user, token))
+    user_detail_url = reverse("api-internal:user-detail", kwargs={"pk": admin.public_primary_key})
+    response = client.get(user_detail_url, None, format="json", **make_user_auth_headers(admin, token))
     assert response.status_code == status.HTTP_200_OK
+
     if expected_status == status.HTTP_200_OK:
         assert not response.json()["unverified_phone_number"]
         assert not response.json()["verified_phone_number"]
@@ -1503,7 +1514,7 @@ def test_viewer_cant_get_own_backend_verification_code(
     make_organization, make_user_for_organization, make_token_for_organization, make_user_auth_headers
 ):
     organization = make_organization()
-    user = make_user_for_organization(organization, role=Role.VIEWER)
+    user = make_user_for_organization(organization, permissions=[])
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -1521,8 +1532,9 @@ def test_viewer_cant_get_another_user_backend_verification_code(
     make_organization, make_user_for_organization, make_token_for_organization, make_user_auth_headers
 ):
     organization = make_organization()
-    first_user = make_user_for_organization(organization, role=Role.EDITOR)
-    second_user = make_user_for_organization(organization, role=Role.VIEWER)
+    # TODO:
+    first_user = make_user_for_organization(organization, permissions=[])
+    second_user = make_user_for_organization(organization, permissions=[])
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -1540,7 +1552,7 @@ def test_viewer_cant_unlink_backend_own_user(
     make_organization, make_user_for_organization, make_token_for_organization, make_user_auth_headers
 ):
     organization = make_organization()
-    user = make_user_for_organization(organization, role=Role.VIEWER)
+    user = make_user_for_organization(organization, permissions=[])
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -1555,8 +1567,15 @@ def test_viewer_cant_unlink_backend_another_user(
     make_organization, make_user_for_organization, make_token_for_organization, make_user_auth_headers
 ):
     organization = make_organization()
-    first_user = make_user_for_organization(organization, role=Role.EDITOR)
-    second_user = make_user_for_organization(organization, role=Role.VIEWER)
+
+    first_user = make_user_for_organization(
+        organization,
+        permissions=[
+            RBACPermission.Permissions.USER_SETTINGS_READ,
+            RBACPermission.Permissions.USER_SETTINGS_WRITE,
+        ],
+    )
+    second_user = make_user_for_organization(organization, permissions=[RBACPermission.Permissions.USER_SETTINGS_READ])
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -1573,7 +1592,7 @@ def test_change_timezone(
     make_organization, make_user_for_organization, make_token_for_organization, make_user_auth_headers
 ):
     organization = make_organization()
-    user = make_user_for_organization(organization, role=Role.EDITOR)
+    user = make_user_for_organization(organization, permissions=[RBACPermission.Permissions.USER_SETTINGS_WRITE])
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -1593,7 +1612,7 @@ def test_invalid_timezone(
     make_organization, make_user_for_organization, make_token_for_organization, make_user_auth_headers, timezone
 ):
     organization = make_organization()
-    user = make_user_for_organization(organization, role=Role.EDITOR)
+    user = make_user_for_organization(organization, permissions=[RBACPermission.Permissions.USER_SETTINGS_WRITE])
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -1610,7 +1629,7 @@ def test_change_working_hours(
     make_organization, make_user_for_organization, make_token_for_organization, make_user_auth_headers
 ):
     organization = make_organization()
-    user = make_user_for_organization(organization, role=Role.EDITOR)
+    user = make_user_for_organization(organization, permissions=[RBACPermission.Permissions.USER_SETTINGS_WRITE])
     _, token = make_token_for_organization(organization)
 
     client = APIClient()
@@ -1652,7 +1671,7 @@ def test_invalid_working_hours(
     working_hours_extra,
 ):
     organization = make_organization()
-    user = make_user_for_organization(organization, role=Role.EDITOR)
+    user = make_user_for_organization(organization, permissions=[RBACPermission.Permissions.USER_SETTINGS_WRITE])
     _, token = make_token_for_organization(organization)
 
     client = APIClient()

@@ -8,8 +8,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APIClient
 
+from apps.api.permissions import RBACPermission
 from apps.heartbeat.models import IntegrationHeartBeat
-from common.constants.role import Role
 
 MOCK_LAST_HEARTBEAT_TIME_VERBAL = "a moment"
 
@@ -25,6 +25,7 @@ def integration_heartbeat_internal_api_setup(
     return user, token, alert_receive_channel, integration_heartbeat
 
 
+# TODO: should probably modify this test to take into account new rbac permissions
 @pytest.mark.django_db
 @patch(
     "apps.api.serializers.integration_heartbeat.IntegrationHeartBeatSerializer.get_instruction",
@@ -61,6 +62,7 @@ def test_get_list_integration_heartbeat(
     assert response.json() == expected_payload
 
 
+# TODO: should probably modify this test to take into account new rbac permissions
 @pytest.mark.django_db
 @patch(
     "apps.api.serializers.integration_heartbeat.IntegrationHeartBeatSerializer.get_instruction",
@@ -95,6 +97,7 @@ def test_get_detail_integration_heartbeat(
     assert response.json() == expected_payload
 
 
+# TODO: should probably modify this test to take into account new rbac permissions
 @pytest.mark.django_db
 @patch(
     "apps.api.serializers.integration_heartbeat.IntegrationHeartBeatSerializer.get_instruction",
@@ -146,6 +149,7 @@ def test_create_invalid_timeout_integration_heartbeat(
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
+# TODO: should probably modify this test to take into account new rbac permissions
 @pytest.mark.django_db
 def test_create_empty_alert_receive_channel_integration_heartbeat(
     integration_heartbeat_internal_api_setup,
@@ -160,6 +164,7 @@ def test_create_empty_alert_receive_channel_integration_heartbeat(
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
+# TODO: should probably modify this test to take into account new rbac permissions
 @pytest.mark.django_db
 def test_update_integration_heartbeat(
     integration_heartbeat_internal_api_setup,
@@ -183,11 +188,11 @@ def test_update_integration_heartbeat(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_403_FORBIDDEN),
-        (Role.VIEWER, status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.INTEGRATIONS_WRITE], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.INTEGRATIONS_READ], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_integration_heartbeat_update_permissions(
@@ -195,10 +200,10 @@ def test_integration_heartbeat_update_permissions(
     make_alert_receive_channel,
     make_integration_heartbeat,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     alert_receive_channel = make_alert_receive_channel(organization)
     integration_heartbeat = make_integration_heartbeat(alert_receive_channel)
     client = APIClient()
@@ -222,18 +227,22 @@ def test_integration_heartbeat_update_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
-    [(Role.ADMIN, status.HTTP_200_OK), (Role.EDITOR, status.HTTP_200_OK), (Role.VIEWER, status.HTTP_200_OK)],
+    "permissions,expected_status",
+    [
+        ([RBACPermission.Permissions.INTEGRATIONS_READ], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.INTEGRATIONS_WRITE], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
+    ],
 )
 def test_integration_heartbeat_list_permissions(
     make_organization_and_user_with_plugin_token,
     make_alert_receive_channel,
     make_integration_heartbeat,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     alert_receive_channel = make_alert_receive_channel(organization)
     make_integration_heartbeat(alert_receive_channel)
     client = APIClient()
@@ -253,11 +262,42 @@ def test_integration_heartbeat_list_permissions(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "role,expected_status",
+    "permissions,expected_status",
     [
-        (Role.ADMIN, status.HTTP_200_OK),
-        (Role.EDITOR, status.HTTP_200_OK),
-        (Role.VIEWER, status.HTTP_200_OK),
+        ([RBACPermission.Permissions.INTEGRATIONS_READ], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.INTEGRATIONS_WRITE], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
+    ],
+)
+def test_integration_heartbeat_timeout_options_permissions(
+    make_organization_and_user_with_plugin_token,
+    make_user_auth_headers,
+    permissions,
+    expected_status,
+):
+    _, user, token = make_organization_and_user_with_plugin_token(permissions)
+    client = APIClient()
+
+    url = reverse("api-internal:integration_heartbeat-timeout-options")
+
+    with patch(
+        "apps.api.views.integration_heartbeat.IntegrationHeartBeatView.timeout_options",
+        return_value=Response(
+            status=status.HTTP_200_OK,
+        ),
+    ):
+        response = client.get(url, format="json", **make_user_auth_headers(user, token))
+
+    assert response.status_code == expected_status
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "permissions,expected_status",
+    [
+        ([RBACPermission.Permissions.INTEGRATIONS_READ], status.HTTP_200_OK),
+        ([RBACPermission.Permissions.INTEGRATIONS_WRITE], status.HTTP_403_FORBIDDEN),
+        ([RBACPermission.Permissions.TESTING], status.HTTP_403_FORBIDDEN),
     ],
 )
 def test_integration_heartbeat_retrieve_permissions(
@@ -265,10 +305,10 @@ def test_integration_heartbeat_retrieve_permissions(
     make_alert_receive_channel,
     make_integration_heartbeat,
     make_user_auth_headers,
-    role,
+    permissions,
     expected_status,
 ):
-    organization, user, token = make_organization_and_user_with_plugin_token(role)
+    organization, user, token = make_organization_and_user_with_plugin_token(permissions)
     alert_receive_channel = make_alert_receive_channel(organization)
     integration_heartbeat = make_integration_heartbeat(alert_receive_channel)
     client = APIClient()
