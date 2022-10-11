@@ -23,6 +23,14 @@ class TwilioClient:
     def twilio_number(self):
         return live_settings.TWILIO_NUMBER
 
+    def send_test_message(self, to):
+        message = TEST_CALL_TEXT.format(
+            channel_name="Test message",
+            alert_group_name="Test notification",
+            alerts_count=2,
+        )
+        self.send_message(message, to)
+
     def send_message(self, body, to):
         status_callback = create_engine_url(reverse("twilioapp:sms_status_events"))
         try:

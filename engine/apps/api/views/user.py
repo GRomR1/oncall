@@ -135,6 +135,7 @@ class UserView(
             "export_token",
             "mobile_app_verification_token",
             "mobile_app_auth_token",
+            "send_test_message",
         ),
         AnyRole: ("retrieve", "timezone_options"),
     }
@@ -155,6 +156,7 @@ class UserView(
             "export_token",
             "mobile_app_verification_token",
             "mobile_app_auth_token",
+            "send_test_message",
         ),
     }
 
@@ -339,6 +341,26 @@ class UserView(
             logger.error(f"Unable to make a test call due to {e}")
             return Response(
                 data="Something went wrong while making a test call", status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        return Response(status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["post"])
+    def send_test_message(self, request, pk):
+        user = self.get_object()
+        phone_number = user.verified_phone_number
+
+        if phone_number is None:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(data="Error 123", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        try:
+            twilio_client.send_test_message(to=phone_number)
+        except Exception as e:
+            logger.error(f"Unable to send a test message due to {e}")
+            return Response(
+                data="Something went wrong while sending a test message", status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
         return Response(status=status.HTTP_200_OK)

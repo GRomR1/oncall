@@ -82,6 +82,10 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
     userStore.makeTestCall(userPk);
   }, [userPk]);
 
+  const handleSendTestMessageClick = useCallback(() => {
+    userStore.sendTestMessage(userPk);
+  }, [userPk]);
+
   const handleForgetNumberClick = useCallback(() => {
     userStore.forgetPhone(userPk).then(async () => {
       await userStore.loadUser(userPk);
@@ -89,7 +93,7 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
     });
   }, [userPk]);
 
-  const { isTestCallInProgress } = userStore;
+  const { isTestCallInProgress, isTestMessageInProgress } = userStore;
 
   const onSubmitCallback = useCallback(async () => {
     if (isCodeSent) {
@@ -224,9 +228,11 @@ const PhoneVerification = observer((props: PhoneVerificationProps) => {
         isCodeSent={isCodeSent}
         isButtonDisabled={isButtonDisabled}
         isTestCallInProgress={isTestCallInProgress}
+        isTestMessageInProgress={isTestMessageInProgress}
         isTwilioConfigured={isTwilioConfigured}
         onSubmitCallback={onSubmitCallback}
         handleMakeTestCallClick={handleMakeTestCallClick}
+        handleSendTestMessageClick={handleSendTestMessageClick}
         onShowForgetScreen={() => setState({ showForgetScreen: true })}
         user={user}
       />
@@ -264,10 +270,12 @@ interface PhoneVerificationButtonsGroupProps {
   isCodeSent: boolean;
   isButtonDisabled: boolean;
   isTestCallInProgress: boolean;
+  isTestMessageInProgress: boolean;
   isTwilioConfigured: boolean;
 
   onSubmitCallback(): void;
   handleMakeTestCallClick(): void;
+  handleSendTestMessageClick(): void;
   onShowForgetScreen(): void;
 
   user: User;
@@ -278,9 +286,11 @@ function PhoneVerificationButtonsGroup({
   isCodeSent,
   isButtonDisabled,
   isTestCallInProgress,
+  isTestMessageInProgress,
   isTwilioConfigured,
   onSubmitCallback,
   handleMakeTestCallClick,
+  handleSendTestMessageClick,
   onShowForgetScreen,
   user,
 }: PhoneVerificationButtonsGroupProps) {
@@ -312,6 +322,17 @@ function PhoneVerificationButtonsGroup({
       {user.verified_phone_number && (
         <WithPermissionControl userAction={action}>
           <Button
+            disabled={!user?.verified_phone_number || !isTwilioConfigured || isTestMessageInProgress}
+            onClick={handleSendTestMessageClick}
+          >
+            {isTestCallInProgress ? 'Sending Test Message...' : 'Send Test Message'}
+          </Button>
+        </WithPermissionControl>
+      )}
+
+      {user.verified_phone_number && (
+        <WithPermissionControl userAction={action}>
+          <Button
             disabled={!user?.verified_phone_number || !isTwilioConfigured || isTestCallInProgress}
             onClick={handleMakeTestCallClick}
           >
@@ -329,6 +350,7 @@ function PhoneVerificationButtonsGroup({
           }}
         />
       </Tooltip>
+
     </HorizontalGroup>
   );
 }

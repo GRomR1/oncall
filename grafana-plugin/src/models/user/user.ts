@@ -34,6 +34,9 @@ export class UserStore extends BaseStore {
   isTestCallInProgress = false;
 
   @observable
+  isTestMessageInProgress = false;
+
+  @observable
   currentUserPk?: User['pk'];
 
   constructor(rootStore: RootStore) {
@@ -350,6 +353,18 @@ export class UserStore extends BaseStore {
       .catch(this.onApiError)
       .finally(() => {
         this.isTestCallInProgress = false;
+      });
+  }
+
+  async sendTestMessage(userPk: User['pk']) {
+    this.isTestMessageInProgress = true;
+
+    return await makeRequest(`/users/${userPk}/send_test_message/`, {
+      method: 'POST',
+    })
+      .catch(this.onApiError)
+      .finally(() => {
+        this.isTestMessageInProgress = false;
       });
   }
 
