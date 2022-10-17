@@ -1,12 +1,13 @@
 import logging
 from abc import ABC, abstractmethod
 
+from apps.api.permissions import has_permissions
+
 logger = logging.getLogger(__name__)
 
 
-# TODO:...
 class AccessControl(ABC):
-    ALLOWED_ROLES = []
+    REQUIRED_PERMISSIONS = []
     ACTION_VERBOSE = ""
 
     def dispatch(self, slack_user_identity, slack_team_identity, payload, action=None):
@@ -16,14 +17,13 @@ class AccessControl(ABC):
             self.send_denied_message(payload)
 
     def check_membership(self):
-        return self.user.role in self.ALLOWED_ROLES
+        return has_permissions(self.user.permissions, self.REQUIRED_PERMISSIONS)
 
     @abstractmethod
     def send_denied_message(self, payload):
         pass
 
 
-# TODO:...
 class IncidentActionsAccessControlMixin(AccessControl):
     """
     Mixin for auth in incident actions
@@ -63,11 +63,8 @@ class IncidentActionsAccessControlMixin(AccessControl):
         )
 
 
-# TODO:...
 class CheckAlertIsUnarchivedMixin(object):
-
-    ALLOWED_ROLES = []
-
+    REQUIRED_PERMISSIONS = []
     ACTION_VERBOSE = ""
 
     def check_alert_is_unarchived(self, slack_team_identity, payload, alert_group, warning=True):

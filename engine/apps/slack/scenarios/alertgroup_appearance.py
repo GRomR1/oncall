@@ -5,15 +5,14 @@ from django.db import transaction
 from jinja2 import TemplateSyntaxError
 from rest_framework.response import Response
 
+from apps.api.permissions import RBACPermission
 from apps.slack.scenarios import scenario_step
-from common.constants.role import Role
 from common.insight_log import EntityEvent, write_resource_insight_log
 from common.jinja_templater import jinja_template_env
 
 from .step_mixins import CheckAlertIsUnarchivedMixin, IncidentActionsAccessControlMixin
 
 
-# TODO:
 class OpenAlertAppearanceDialogStep(
     CheckAlertIsUnarchivedMixin, IncidentActionsAccessControlMixin, scenario_step.ScenarioStep
 ):
@@ -22,7 +21,7 @@ class OpenAlertAppearanceDialogStep(
         scenario_step.ScenarioStep.TAG_INCIDENT_ROUTINE,
     ]
 
-    ALLOWED_ROLES = [Role.ADMIN]
+    REQUIRED_PERMISSIONS = [RBACPermission.Permissions.CHATOPS_WRITE]
     ACTION_VERBOSE = "open Alert Appearance"
 
     def process_scenario(self, slack_user_identity, slack_team_identity, payload, action=None):
@@ -65,7 +64,7 @@ class OpenAlertAppearanceDialogStep(
             raw_request_data = alert_group.alerts.first().message
 
         raw_request_data_chunks = [
-            raw_request_data[i : i + PAYLOAD_TEXT_SIZE] for i in range(0, len(raw_request_data), PAYLOAD_TEXT_SIZE)
+            raw_request_data[i: i + PAYLOAD_TEXT_SIZE] for i in range(0, len(raw_request_data), PAYLOAD_TEXT_SIZE)
         ]
         for idx, chunk in enumerate(raw_request_data_chunks):
             block = {
