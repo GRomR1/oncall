@@ -13,8 +13,7 @@ class CloudHeartbeatView(APIView):
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, RBACPermission)
     rbac_permissions = {
-        # TODO: what permissions should go here?
-        "post": [],
+        "post": [RBACPermission.Permissions.OTHER_SETTINGS_WRITE],
     }
 
     def post(self, request):

@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.api.permissions import RBACPermission
+from apps.api.permissions import IsOwnerOrHasRBACPermissions, RBACPermission
 from apps.auth_token.auth import PluginAuthentication
 from apps.oss_installation.models import CloudConnector, CloudUserIdentity
 from apps.oss_installation.serializers import CloudUserSerializer
@@ -15,15 +15,16 @@ from apps.user_management.models import User
 from common.api_helpers.mixins import PublicPrimaryKeyMixin
 from common.api_helpers.paginators import HundredPageSizePaginator
 
+PERMISSIONS = [RBACPermission.Permissions.OTHER_SETTINGS_WRITE]
+
 
 class CloudUsersView(HundredPageSizePaginator, APIView):
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, RBACPermission)
 
     rbac_permissions = {
-        # TODO: what permissions should go here?
-        "get": [],
-        "post": [],
+        "get": PERMISSIONS,
+        "post": PERMISSIONS,
     }
 
     def get(self, request):
@@ -89,15 +90,19 @@ class CloudUserView(
     permission_classes = (IsAuthenticated, RBACPermission)
 
     rbac_permissions = {
-        # TODO: what permissions should go here?
-        "retrieve": [],
-        "sync": [],
+        "retrieve": PERMISSIONS,
+        "sync": PERMISSIONS,
     }
 
+    IsOwnerOrHasUserSettingsAdminPermission = IsOwnerOrHasRBACPermissions(
+        [RBACPermission.Permissions.USER_SETTINGS_ADMIN]
+    )
+
     rbac_object_permissions = {
-        # TODO: what permissions should go here?
-        "retrieve": [],
-        "sync": [],
+        IsOwnerOrHasUserSettingsAdminPermission: [
+            "retrieve",
+            "sync",
+        ],
     }
 
     serializer_class = CloudUserSerializer
