@@ -105,11 +105,6 @@ class GrafanaAPIClient(APIClient):
 
         user_permissions = self.get_users_permissions()
 
-        # if for whatever reason the call to fetch user permissions fails, we should just
-        # return an empty array to avoid potentially wiping all current user permissions
-        if not user_permissions:
-            return []
-
         # merge the users permissions response into the org users response
         for user in users:
             user["permissions"] = user_permissions.get(str(user["userId"]), [])
