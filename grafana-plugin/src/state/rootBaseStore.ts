@@ -66,8 +66,7 @@ export class RootBaseStore {
   correctProvisioningForInstallation = true;
 
   @observable
-  // TODO: this should probably change?
-  correctRoleForInstallation = true;
+  currentUserHasPermissionForInstallation = true;
 
   @observable
   signupAllowedForPlugin = true;
@@ -177,7 +176,7 @@ export class RootBaseStore {
     this.appLoading = true;
     this.pluginIsInitialized = true;
     this.correctProvisioningForInstallation = true;
-    this.correctRoleForInstallation = true;
+    this.currentUserHasPermissionForInstallation = true;
     this.signupAllowedForPlugin = true;
     this.initializationError = '';
     this.retrySync = false;
@@ -222,10 +221,9 @@ export class RootBaseStore {
         this.signupAllowedForPlugin = false;
         return;
       }
-      // TODO: what to do here?!?!
-      const userRole = 'Admin';
-      if (userRole !== 'Admin') {
-        this.correctRoleForInstallation = false;
+
+      if (!this.isUserActionAllowed(UserAction.PluginsInstall)) {
+        this.currentUserHasPermissionForInstallation = false;
         return;
       }
       await installPlugin();
