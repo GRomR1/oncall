@@ -2,6 +2,7 @@ import enum
 import typing
 
 from rest_framework import permissions
+from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.request import Request
 from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet, ViewSetMixin
@@ -173,6 +174,18 @@ class IsOwnerOrHasRBACPermissions(permissions.BasePermission):
         return self.IsOwner.has_object_permission(request, view, obj) or self.HasRBACPermissions.has_object_permission(
             request, view, obj
         )
+
+
+class IsStaff(permissions.BasePermission):
+    STAFF_AUTH_CLASSES = [BasicAuthentication, SessionAuthentication]
+
+    def has_permission(self, request: Request, _view: ViewSet) -> bool:
+        user = request.user
+        if not any(isinstance(request._authenticator, x) for x in self.STAFF_AUTH_CLASSES):
+            return False
+        if user and user.is_authenticated:
+            return user.is_staff
+        return False
 
 
 RBACPermissionsAttribute = typing.Dict[str, typing.List[RBACPermission.Permissions]]
