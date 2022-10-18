@@ -38,7 +38,7 @@ const TelegramConnector = (props: TelegramConnectorProps) => {
     <div className={cx('root')}>
       <HorizontalGroup wrap spacing="sm">
         <div className={cx('slack-channel-switch')}>
-          <WithPermissionControl userAction={UserAction.UpdateAlertReceiveChannels}>
+          <WithPermissionControl userAction={UserAction.IntegrationsWrite}>
             <InlineSwitch
               value={channelFilter.notify_in_telegram}
               onChange={handleChannelFilterNotifyInTelegramChange}
@@ -47,7 +47,7 @@ const TelegramConnector = (props: TelegramConnectorProps) => {
           </WithPermissionControl>
         </div>
         Post to telegram channel
-        <WithPermissionControl userAction={UserAction.UpdateAlertReceiveChannels}>
+        <WithPermissionControl userAction={UserAction.IntegrationsWrite}>
           <GSelect
             showSearch
             allowClear

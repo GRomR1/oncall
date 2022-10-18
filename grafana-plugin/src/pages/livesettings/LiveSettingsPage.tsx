@@ -3,22 +3,13 @@ import React from 'react';
 import {
   Button,
   Checkbox,
-  ConfirmModal,
-  DatePickerWithInput,
   HorizontalGroup,
   Icon,
-  LoadingPlaceholder,
-  PENDING_COLOR,
-  Tooltip,
-  VerticalGroup,
 } from '@grafana/ui';
 import cn from 'classnames/bind';
-import { omit } from 'lodash-es';
 import { observe } from 'mobx';
 import { observer } from 'mobx-react';
 import { Lambda } from 'mobx/lib/internal';
-import { AlignType } from 'rc-table/lib/interface';
-import { Redirect } from 'react-router-dom';
 
 import GTable from 'components/GTable/GTable';
 import Text from 'components/Text/Text';
@@ -136,7 +127,7 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
                 {/*<Text type="secondary">Some information</Text>*/}
               </HorizontalGroup>
               <HorizontalGroup justify="flex-end">
-                <WithPermissionControl userAction={UserAction.UpdateGlobalSettings}>
+                <WithPermissionControl userAction={UserAction.OtherSettingsWrite}>
                   <Button
                     variant="primary"
                     icon={hideValues ? 'eye' : 'eye-slash'}
@@ -182,7 +173,7 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
         <Text
           copyable={!item.is_secret && Boolean(item.value)}
           onTextChange={this.getEditValueChangeHandler(item)}
-          editable={store.isUserActionAllowed(UserAction.UpdateGlobalSettings)}
+          editable={store.isUserActionAllowed(UserAction.OtherSettingsWrite)}
           clearBeforeEdit={item.is_secret}
           hidden={hideValues}
         >
@@ -254,7 +245,7 @@ class LiveSettings extends React.Component<LiveSettingsProps, LiveSettingsState>
       // >
       //     <WithPermissionControl
       //         key="delete"
-      //         userAction={UserAction.UpdateIntegrations}
+      //         userAction={UserAction.IntegrationsWrite}
       //     >
       //         <Button type="link">Reset</Button>
       //     </WithPermissionControl>

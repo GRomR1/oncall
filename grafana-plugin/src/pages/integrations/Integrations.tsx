@@ -28,7 +28,6 @@ import { AlertReceiveChannelOption } from 'models/alert_receive_channel/alert_re
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
-import { openWarningNotification } from 'utils';
 
 import styles from './Integrations.module.css';
 
@@ -146,7 +145,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
               {searchResult?.length ? (
                 <div className={cx('integrations')}>
                   <div className={cx('integrationsList')}>
-                    <WithPermissionControl userAction={UserAction.UpdateAlertReceiveChannels}>
+                    <WithPermissionControl userAction={UserAction.IntegrationsWrite}>
                       <Button
                         onClick={() => {
                           this.setState({ showCreateIntegrationModal: true });
@@ -201,7 +200,7 @@ class Integrations extends React.Component<IntegrationsProps, IntegrationsState>
                   title={
                     <VerticalGroup align="center" spacing="lg">
                       <Text type="secondary">No integrations found. Review your filter and team settings.</Text>
-                      <WithPermissionControl userAction={UserAction.UpdateAlertReceiveChannels}>
+                      <WithPermissionControl userAction={UserAction.IntegrationsWrite}>
                         <Button
                           icon="plus"
                           variant="primary"

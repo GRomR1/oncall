@@ -8,19 +8,14 @@ import moment from 'moment';
 import Emoji from 'react-emoji-render';
 
 import GTable from 'components/GTable/GTable';
-import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import WithConfirm from 'components/WithConfirm/WithConfirm';
-import GSelect from 'containers/GSelect/GSelect';
 import MaintenanceForm from 'containers/MaintenanceForm/MaintenanceForm';
-import OutgoingWebhookForm from 'containers/OutgoingWebhookForm/OutgoingWebhookForm';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
-import { ActionDTO } from 'models/action';
 import { getAlertReceiveChannelDisplayName } from 'models/alert_receive_channel/alert_receive_channel.helpers';
 import { AlertReceiveChannel } from 'models/alert_receive_channel/alert_receive_channel.types';
 import { getMaintenanceProgress } from 'models/maintenance/helpers';
 import { Maintenance, MaintenanceMode, MaintenanceType } from 'models/maintenance/maintenance.types';
-import { PRIVATE_CHANNEL_NAME } from 'models/slack_channel/slack_channel.config';
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
@@ -135,7 +130,7 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
                     </Text>
                   </HorizontalGroup>
                 </div>
-                <WithPermissionControl userAction={UserAction.UpdateMaintenances}>
+                <WithPermissionControl userAction={UserAction.MaintenanceWrite}>
                   <Button
                     onClick={() => {
                       this.setState({ maintenanceData: {} });
@@ -189,7 +184,7 @@ class MaintenancePage extends React.Component<MaintenancePageProps, MaintenanceP
   renderActionButtons = (maintenance: Maintenance) => {
     return (
       <div className={cx('buttons')}>
-        <WithPermissionControl userAction={UserAction.UpdateMaintenances}>
+        <WithPermissionControl userAction={UserAction.MaintenanceWrite}>
           <WithConfirm title="Are you sure to stop?" confirmText="Stop">
             <Button variant="destructive" fill="text" onClick={this.getStopMaintenanceHandler(maintenance)}>
               Stop

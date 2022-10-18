@@ -1,8 +1,5 @@
-import { ReactElement } from 'react';
-
 import { FormItem, FormItemType } from 'components/GForm/GForm.types';
 import { PRIVATE_CHANNEL_NAME } from 'models/slack_channel/slack_channel.config';
-import { DEFAULT_USER_ROLES } from 'models/user/user.config';
 
 const commonFields: FormItem[] = [
   {

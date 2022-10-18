@@ -65,7 +65,7 @@ const MaintenanceForm = observer((props: MaintenanceFormProps) => {
       <div className={cx('content')}>
         <VerticalGroup>
           <GForm form={form} data={initialData} onSubmit={handleSubmit} />
-          <WithPermissionControl userAction={UserAction.UpdateMaintenances}>
+          <WithPermissionControl userAction={UserAction.MaintenanceWrite}>
             <Button form={form.name} type="submit">
               Start
             </Button>

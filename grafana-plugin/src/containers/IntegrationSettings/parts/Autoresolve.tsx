@@ -6,7 +6,6 @@ import cn from 'classnames/bind';
 import { get } from 'lodash-es';
 
 import Block from 'components/GBlock/Block';
-import PluginLink from 'components/PluginLink/PluginLink';
 import Text from 'components/Text/Text';
 import GSelect from 'containers/GSelect/GSelect';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
@@ -151,7 +150,7 @@ const Autoresolve = ({ alertReceiveChannelId, onSwitchToTemplate, alertGroupId }
             </div>
           </Label>
           <div className={cx('team-select')}>
-            <WithPermissionControl userAction={UserAction.UpdateAlertReceiveChannels}>
+            <WithPermissionControl userAction={UserAction.IntegrationsWrite}>
               <Select
                 className={cx('team-select')}
                 //@ts-ignore

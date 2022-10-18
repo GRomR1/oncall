@@ -105,7 +105,7 @@ const PersonalNotificationSettings = observer((props: PersonalNotificationSettin
 
   const user = userStore.items[userPk];
 
-  const userAction = isCurrent ? UserAction.UpdateOwnSettings : UserAction.UpdateNotificationPolicies;
+  const userAction = isCurrent ? UserAction.UserSettingsWrite : UserAction.NotificationSettingsWrite;
   const getPhoneStatus = () => {
     if (store.hasFeature(AppFeature.CloudNotifications)) {
       return user.cloud_connection_status;

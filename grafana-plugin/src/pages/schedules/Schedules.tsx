@@ -201,9 +201,9 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
                       <PluginLink
                         partial
                         query={{ id: 'new' }}
-                        disabled={!store.isUserActionAllowed(UserAction.UpdateSchedules)}
+                        disabled={!store.isUserActionAllowed(UserAction.SchedulesWrite)}
                       >
-                        <WithPermissionControl userAction={UserAction.UpdateSchedules}>
+                        <WithPermissionControl userAction={UserAction.SchedulesWrite}>
                           <Button variant="primary" icon="plus">
                             New schedule
                           </Button>
@@ -406,7 +406,7 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
   renderActionButtons = (record: Schedule) => {
     return (
       <HorizontalGroup justify="flex-end">
-        <WithPermissionControl key="edit" userAction={UserAction.UpdateSchedules}>
+        <WithPermissionControl key="edit" userAction={UserAction.SchedulesWrite}>
           <Button
             onClick={(event) => {
               event.stopPropagation();
@@ -420,17 +420,17 @@ class SchedulesPage extends React.Component<SchedulesPageProps, SchedulesPageSta
             Edit
           </Button>
         </WithPermissionControl>
-        <WithPermissionControl key="reload" userAction={UserAction.UpdateSchedules}>
+        <WithPermissionControl key="reload" userAction={UserAction.SchedulesWrite}>
           <Button onClick={this.getReloadScheduleClickHandler(record.id)} fill="text">
             Reload
           </Button>
         </WithPermissionControl>
-        <WithPermissionControl key="export" userAction={UserAction.UpdateSchedules}>
+        <WithPermissionControl key="export" userAction={UserAction.SchedulesWrite}>
           <Button onClick={this.getExportScheduleClickHandler(record.id)} fill="text">
             Export
           </Button>
         </WithPermissionControl>
-        <WithPermissionControl key="delete" userAction={UserAction.UpdateSchedules}>
+        <WithPermissionControl key="delete" userAction={UserAction.SchedulesWrite}>
           <Button onClick={this.getDeleteScheduleClickHandler(record.id)} fill="text" variant="destructive">
             Delete
           </Button>
@@ -531,6 +531,7 @@ const Event = ({ event }: EventProps) => {
                       (check if {event.missing_users[0].includes(',') ? 'some of these users -' : 'user -'}{' '}
                       <Text type="secondary">"{event.missing_users[0]}"</Text>{' '}
                       {event.missing_users[0].includes(',') ? 'are' : 'is'} existing in OnCall or{' '}
+                      {/* TODO: should probably update this message? */}
                       {event.missing_users[0].includes(',') ? 'have' : 'has'} Viewer role)
                     </Text>
                   )}

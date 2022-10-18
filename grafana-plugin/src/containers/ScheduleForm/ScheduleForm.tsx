@@ -1,11 +1,9 @@
 import React, { useCallback, useMemo } from 'react';
 
-import { SelectableValue } from '@grafana/data';
-import { Button, Drawer, HorizontalGroup, VerticalGroup } from '@grafana/ui';
+import { Button, Drawer, VerticalGroup } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
 
-import Avatar from 'components/Avatar/Avatar';
 import GForm from 'components/GForm/GForm';
 import Text from 'components/Text/Text';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
@@ -83,7 +81,7 @@ const ScheduleForm = observer((props: ScheduleFormProps) => {
             schedule on-call shifts create a new calendar and use events with the teammates usernames
           </Text>
           <GForm form={formConfig} data={data} onSubmit={handleSubmit} />
-          <WithPermissionControl userAction={UserAction.UpdateSchedules}>
+          <WithPermissionControl userAction={UserAction.SchedulesWrite}>
             <Button form={formConfig.name} type="submit">
               {id === 'new' ? 'Create' : 'Update'} Schedule
             </Button>

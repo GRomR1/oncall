@@ -82,7 +82,7 @@ class ApiTokens extends React.Component<ApiTokensProps, any> {
                   Terraform Docs
                 </a>*/}
               </HorizontalGroup>
-              <WithPermissionControl userAction={UserAction.UpdateApiTokens}>
+              <WithPermissionControl userAction={UserAction.APIKeysWrite}>
                 <Button
                   icon="plus"
                   disabled={apiTokens && apiTokens.length >= MAX_TOKENS_PER_USER}
@@ -100,7 +100,7 @@ class ApiTokens extends React.Component<ApiTokensProps, any> {
           showHeader={!isMobile}
           data={apiTokens}
           emptyText={
-            store.isUserActionAllowed(UserAction.UpdateApiTokens)
+            store.isUserActionAllowed(UserAction.APIKeysWrite)
               ? apiTokens
                 ? 'No tokens found'
                 : 'Loading...'
@@ -123,7 +123,7 @@ class ApiTokens extends React.Component<ApiTokensProps, any> {
 
   renderActionButtons = (record: ApiToken) => {
     const revokeButton = (
-      <WithPermissionControl userAction={UserAction.UpdateApiTokens}>
+      <WithPermissionControl userAction={UserAction.APIKeysWrite}>
         <WithConfirm title={`Are you sure to revoke "${record.name}" API token?`} confirmText="Revoke token">
           <Button fill="text" variant="destructive" onClick={this.getRevokeTokenClickHandler(record.id)}>
             Revoke

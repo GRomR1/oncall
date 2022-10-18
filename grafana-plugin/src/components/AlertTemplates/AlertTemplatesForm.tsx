@@ -7,9 +7,8 @@ import { capitalCase } from 'change-case';
 import cn from 'classnames/bind';
 import { omit } from 'lodash-es';
 
-import { templatesToRender, Template } from 'components/AlertTemplates/AlertTemplatesForm.config';
+import { templatesToRender } from 'components/AlertTemplates/AlertTemplatesForm.config';
 import { getLabelFromTemplateName, includeTemplateGroup } from 'components/AlertTemplates/AlertTemplatesForm.helper';
-import Collapse from 'components/Collapse/Collapse';
 import Block from 'components/GBlock/Block';
 import MonacoJinja2Editor from 'components/MonacoJinja2Editor/MonacoJinja2Editor';
 import SourceCode from 'components/SourceCode/SourceCode';
@@ -164,7 +163,7 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
     <HorizontalGroup>
       <Text type="secondary">There are no alerts from this monitoring yet.</Text>
       {demoAlertEnabled ? (
-        <WithPermissionControl userAction={UserAction.SendDemoAlert}>
+        <WithPermissionControl userAction={UserAction.IntegrationsWrite}>
           <Button className={cx('button')} variant="primary" onClick={handleSendDemoAlertClick} size="sm">
             Send demo alert
           </Button>
@@ -253,7 +252,7 @@ const AlertTemplatesForm = (props: AlertTemplatesFormProps) => {
               </div>
             ))}
             <HorizontalGroup spacing="sm">
-              <WithPermissionControl userAction={UserAction.UpdateAlertReceiveChannels}>
+              <WithPermissionControl userAction={UserAction.IntegrationsWrite}>
                 <Button variant="primary" onClick={handleSubmit}>
                   Save Templates
                 </Button>

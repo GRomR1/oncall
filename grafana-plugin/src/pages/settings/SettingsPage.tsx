@@ -1,15 +1,12 @@
 import React from 'react';
 
-import { DatePickerWithInput, Field, Input, Switch } from '@grafana/ui';
+import { Field, Input, Switch } from '@grafana/ui';
 import cn from 'classnames/bind';
 import { observer } from 'mobx-react';
-import moment from 'moment';
 
 import Text from 'components/Text/Text';
 import ApiTokenSettings from 'containers/ApiTokenSettings/ApiTokenSettings';
-import GSelect from 'containers/GSelect/GSelect';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
-import { PRIVATE_CHANNEL_NAME } from 'models/slack_channel/slack_channel.config';
 import { WithStoreProps } from 'state/types';
 import { UserAction } from 'state/userAction';
 import { withMobXProviderContext } from 'state/withStore';
@@ -51,7 +48,7 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
             label="Require resolution note when resolve incident"
             description="Once user clicks “Resolve” for an incident they are require to fill a resolution note about the incident"
           >
-            <WithPermissionControl userAction={UserAction.UpdateGlobalSettings}>
+            <WithPermissionControl userAction={UserAction.OtherSettingsWrite}>
               <Switch
                 value={teamStore.currentTeam?.is_resolution_note_required}
                 onChange={(event) => {
@@ -67,7 +64,7 @@ class SettingsPage extends React.Component<SettingsPageProps, SettingsPageState>
             label="Archive alert created before given date"
             description="Alerts before and including this date will be resolved and archived"
           >
-            <WithPermissionControl userAction={UserAction.UpdateGlobalSettings}>
+            <WithPermissionControl userAction={UserAction.OtherSettingsWrite}>
               <DatePickerWithInput
                 closeOnSelect
                 width={40}

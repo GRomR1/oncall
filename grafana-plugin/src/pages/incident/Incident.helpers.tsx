@@ -1,4 +1,4 @@
-import React, { ReactElement } from 'react';
+import React from 'react';
 
 import { Button, HorizontalGroup, Icon, Tooltip, VerticalGroup } from '@grafana/ui';
 
@@ -8,7 +8,7 @@ import Tag from 'components/Tag/Tag';
 import Text from 'components/Text/Text';
 import { WithPermissionControl } from 'containers/WithPermissionControl/WithPermissionControl';
 import { MaintenanceIntegration } from 'models/alert_receive_channel';
-import { Alert as AlertType, Alert, AlertAction, IncidentStatus } from 'models/alertgroup/alertgroup.types';
+import { Alert as AlertType, Alert, IncidentStatus } from 'models/alertgroup/alertgroup.types';
 import { User } from 'models/user/user.types';
 import SilenceDropdown from 'pages/incidents/parts/SilenceDropdown';
 import { move } from 'state/helpers';
@@ -173,7 +173,7 @@ export function getActionButtons(incident: AlertType, cx: any, callbacks: { [key
   const { onResolve, onUnresolve, onAcknowledge, onUnacknowledge, onSilence, onUnsilence } = callbacks;
 
   const resolveButton = (
-    <WithPermissionControl key="resolve" userAction={UserAction.UpdateIncidents}>
+    <WithPermissionControl key="resolve" userAction={UserAction.AlertGroupsWrite}>
       <Button size="sm" disabled={incident.loading} onClick={onResolve} variant="primary">
         Resolve
       </Button>
@@ -181,7 +181,7 @@ export function getActionButtons(incident: AlertType, cx: any, callbacks: { [key
   );
 
   const unacknowledgeButton = (
-    <WithPermissionControl key="unacknowledge" userAction={UserAction.UpdateIncidents}>
+    <WithPermissionControl key="unacknowledge" userAction={UserAction.AlertGroupsWrite}>
       <Button size="sm" disabled={incident.loading} onClick={onUnacknowledge} variant="secondary">
         Unacknowledge
       </Button>
@@ -189,7 +189,7 @@ export function getActionButtons(incident: AlertType, cx: any, callbacks: { [key
   );
 
   const unresolveButton = (
-    <WithPermissionControl key="unacknowledge" userAction={UserAction.UpdateIncidents}>
+    <WithPermissionControl key="unacknowledge" userAction={UserAction.AlertGroupsWrite}>
       <Button size="sm" disabled={incident.loading} onClick={onUnresolve} variant="primary">
         Unresolve
       </Button>
@@ -197,7 +197,7 @@ export function getActionButtons(incident: AlertType, cx: any, callbacks: { [key
   );
 
   const acknowledgeButton = (
-    <WithPermissionControl key="acknowledge" userAction={UserAction.UpdateIncidents}>
+    <WithPermissionControl key="acknowledge" userAction={UserAction.AlertGroupsWrite}>
       <Button size="sm" disabled={incident.loading} onClick={onAcknowledge} variant="secondary">
         Acknowledge
       </Button>
@@ -221,7 +221,7 @@ export function getActionButtons(incident: AlertType, cx: any, callbacks: { [key
 
     if (incident.status === IncidentStatus.Silenced) {
       buttons.push(
-        <WithPermissionControl key="silence" userAction={UserAction.UpdateIncidents}>
+        <WithPermissionControl key="silence" userAction={UserAction.AlertGroupsWrite}>
           <Button size="sm" disabled={incident.loading} variant="secondary" onClick={onUnsilence}>
             Unsilence
           </Button>

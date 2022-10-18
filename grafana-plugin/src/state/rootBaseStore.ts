@@ -1,5 +1,7 @@
 import { AppPluginMeta } from '@grafana/data';
 import { getBackendSrv } from '@grafana/runtime';
+// @ts-ignore
+import { contextSrv } from 'grafana/app/core/core';
 import { action, observable } from 'mobx';
 import moment from 'moment-timezone';
 import qs from 'query-string';
@@ -32,14 +34,15 @@ import { makeRequest } from 'network';
 
 import { AppFeature } from './features';
 import {
-  createGrafanaToken,
   getPluginSyncStatus,
   installPlugin,
   startPluginSync,
-  SYNC_STATUS_RETRY_LIMIT, syncStatusDelay,
-  updateGrafanaToken
+  SYNC_STATUS_RETRY_LIMIT,
+  syncStatusDelay,
 } from './plugin';
 import { UserAction } from './userAction';
+
+// @ts-ignore
 
 // ------ Dashboard ------ //
 
@@ -63,6 +66,7 @@ export class RootBaseStore {
   correctProvisioningForInstallation = true;
 
   @observable
+  // TODO: this should probably change?
   correctRoleForInstallation = true;
 
   @observable
@@ -141,15 +145,6 @@ export class RootBaseStore {
     this.escalationPolicyStore.updateNumMinutesInWindowOptions();
   }
 
-  async getUserRole() {
-    const user = await getBackendSrv().get('/api/user');
-    const userRoles = await getBackendSrv().get('/api/user/orgs');
-    const userRole = userRoles.find(
-      (userRole: { name: string; orgId: number; role: string }) => userRole.orgId === user.orgId
-    );
-    return userRole.role;
-  }
-
   async finishSync(get_sync_response: any) {
     if (!get_sync_response.token_ok) {
       this.initializationError = 'OnCall was not able to connect back to this Grafana';
@@ -190,23 +185,22 @@ export class RootBaseStore {
   }
 
   async waitForSyncStatus(retryCount = 0) {
-
     if (retryCount > SYNC_STATUS_RETRY_LIMIT) {
       this.retrySync = true;
       return;
     }
 
-    getPluginSyncStatus().then((get_sync_response) => {
-      if (get_sync_response.hasOwnProperty('token_ok')) {
-        this.finishSync(get_sync_response);
-      } else {
-        syncStatusDelay(retryCount + 1)
-            .then(() => this.waitForSyncStatus(retryCount + 1))
-      }
-      }).catch((e) => {
+    getPluginSyncStatus()
+      .then((get_sync_response) => {
+        if (get_sync_response.hasOwnProperty('token_ok')) {
+          this.finishSync(get_sync_response);
+        } else {
+          syncStatusDelay(retryCount + 1).then(() => this.waitForSyncStatus(retryCount + 1));
+        }
+      })
+      .catch((e) => {
         this.handleSyncException(e);
       });
-
   }
 
   async setupPlugin(meta: AppPluginMeta<OnCallAppSettings>) {
@@ -228,7 +222,8 @@ export class RootBaseStore {
         this.signupAllowedForPlugin = false;
         return;
       }
-      const userRole = await this.getUserRole();
+      // TODO: what to do here?!?!
+      const userRole = 'Admin';
       if (userRole !== 'Admin') {
         this.correctRoleForInstallation = false;
         return;
@@ -239,7 +234,9 @@ export class RootBaseStore {
   }
 
   isUserActionAllowed(action: UserAction) {
-    return this.userStore.currentUser && this.userStore.currentUser.permissions.includes(action);
+    // https://github.com/grafana/grafana/blob/main/public/app/core/services/context_srv.ts#L165-L170
+    // TODO: what to assign fallback (2nd argument) to?
+    return contextSrv.hasAccess(action, true);
   }
 
   hasFeature(feature: string | AppFeature) {

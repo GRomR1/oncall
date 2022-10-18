@@ -1,23 +1,40 @@
 export enum UserAction {
-  UpdateIncidents = 'update_incidents',
-  UpdateAlertReceiveChannels = 'update_alert_receive_channels',
-  UpdateEscalationPolicies = 'update_escalation_policies',
-  UpdateNotificationPolicies = 'update_notification_policies',
-  UpdateGeneralLogChannelId = 'update_general_log_channel_id',
-  UpdateGlobalSettings = 'update_global_settings',
-  UpdateOwnSettings = 'update_own_settings',
-  UpdateOtherUsersSettings = 'update_other_users_settings',
-  ViewOtherUsers = 'view_other_users',
-  UpdateIntegrations = 'update_integrations',
-  UpdateSchedules = 'update_schedules',
-  UpdateCustomActions = 'update_custom_actions',
-  UpdateApiTokens = 'update_api_tokens',
-  UpdateMaintenances = 'update_maintenances',
-  CreateTeam = 'create_team',
-  UpdateTeams = 'update_teams',
-  SendDemoAlert = 'send_demo_alert',
-  UpdateCurler = 'update_curler',
+  AlertGroupsRead = 'grafana-oncall-app.alert-groups:read',
+  AlertGroupsWrite = 'grafana-oncall-app.alert-groups:write',
 
-  // for testing purposes
-  Impossible = 'impossible',
+  IntegrationsRead = 'grafana-oncall-app.integrations:read',
+  IntegrationsWrite = 'grafana-oncall-app.integrations:write',
+
+  EscalationChainsRead = 'grafana-oncall-app.escalation-chains:read',
+  EscalationChainsWrite = 'grafana-oncall-app.escalation-chains:write',
+
+  SchedulesRead = 'grafana-oncall-app.schedules:read',
+  SchedulesWrite = 'grafana-oncall-app.schedules:write',
+
+  ChatOpsRead = 'grafana-oncall-app.chatops:read',
+  ChatOpsWrite = 'grafana-oncall-app.chatops:write',
+
+  OutgoingWebhooksRead = 'grafana-oncall-app.outgoing-webhooks:read',
+  OutgoingWebhooksWrite = 'grafana-oncall-app.outgoing-webhooks:write',
+
+  MaintenanceRead = 'grafana-oncall-app.maintenance:read',
+  MaintenanceWrite = 'grafana-oncall-app.maintenance:write',
+
+  APIKeysRead = 'grafana-oncall-app.api-keys:read',
+  APIKeysWrite = 'grafana-oncall-app.api-keys:write',
+
+  NotificationSettingsRead = 'grafana-oncall-app.notification-settings:read',
+  NotificationSettingsWrite = 'grafana-oncall-app.notification-settings:write',
+
+  UserSettingsRead = 'grafana-oncall-app.user-settings:read',
+  UserSettingsWrite = 'grafana-oncall-app.user-settings:write',
+  UserSettingsAdmin = 'grafana-oncall-app.user-settings:admin',
+
+  OtherSettingsRead = 'grafana-oncall-app.other-settings:read',
+  OtherSettingsWrite = 'grafana-oncall-app.others-settings:write',
+
+  // These are not oncall specific
+  TeamsWrite = 'teams:write',
 }
+
+export type Permissions = Record<UserAction, boolean>;

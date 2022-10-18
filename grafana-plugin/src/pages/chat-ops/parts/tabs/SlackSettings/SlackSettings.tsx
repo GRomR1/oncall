@@ -64,7 +64,7 @@ class SlackSettings extends Component<SlackProps, SlackState> {
         </Text.Title>
         <div className={cx('slack-settings')}>
           <Field label="Default channel for Slack notifications">
-            <WithPermissionControl userAction={UserAction.UpdateGeneralLogChannelId}>
+            <WithPermissionControl userAction={UserAction.ChatOpsWrite}>
               <GSelect
                 showSearch
                 className={cx('select', 'control')}
@@ -88,7 +88,7 @@ class SlackSettings extends Component<SlackProps, SlackState> {
             description="Set up a reminder and timeout for acknowledged alert to never forget about them"
           >
             <HorizontalGroup>
-              <WithPermissionControl userAction={UserAction.UpdateGeneralLogChannelId}>
+              <WithPermissionControl userAction={UserAction.ChatOpsWrite}>
                 <RemoteSelect
                   className={cx('select')}
                   showSearch={false}
@@ -97,7 +97,7 @@ class SlackSettings extends Component<SlackProps, SlackState> {
                   onChange={this.getSlackSettingsChangeHandler('acknowledge_remind_timeout')}
                 />
               </WithPermissionControl>
-              <WithPermissionControl userAction={UserAction.UpdateGeneralLogChannelId}>
+              <WithPermissionControl userAction={UserAction.ChatOpsWrite}>
                 <RemoteSelect
                   className={cx('select')}
                   disabled={slackStore.slackSettings?.acknowledge_remind_timeout === 0}

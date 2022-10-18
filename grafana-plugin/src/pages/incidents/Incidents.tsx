@@ -192,7 +192,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
         <div className={cx('bulk-actions')}>
           <HorizontalGroup>
             {'resolve' in store.alertGroupStore.bulkActions && (
-              <WithPermissionControl key="resolve" userAction={UserAction.UpdateIncidents}>
+              <WithPermissionControl key="resolve" userAction={UserAction.AlertGroupsWrite}>
                 <Button
                   disabled={!hasSelected}
                   variant="primary"
@@ -203,7 +203,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
               </WithPermissionControl>
             )}
             {'acknowledge' in store.alertGroupStore.bulkActions && (
-              <WithPermissionControl key="resolve" userAction={UserAction.UpdateIncidents}>
+              <WithPermissionControl key="resolve" userAction={UserAction.AlertGroupsWrite}>
                 <Button
                   disabled={!hasSelected}
                   variant="secondary"
@@ -214,7 +214,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
               </WithPermissionControl>
             )}
             {'silence' in store.alertGroupStore.bulkActions && (
-              <WithPermissionControl key="restart" userAction={UserAction.UpdateIncidents}>
+              <WithPermissionControl key="restart" userAction={UserAction.AlertGroupsWrite}>
                 <Button
                   disabled={!hasSelected}
                   variant="secondary"
@@ -225,7 +225,7 @@ class Incidents extends React.Component<IncidentsPageProps, IncidentsPageState> 
               </WithPermissionControl>
             )}
             {'restart' in store.alertGroupStore.bulkActions && (
-              <WithPermissionControl key="silence" userAction={UserAction.UpdateIncidents}>
+              <WithPermissionControl key="silence" userAction={UserAction.AlertGroupsWrite}>
                 <SilenceDropdown
                   disabled={!hasSelected}
                   onSelect={(ev) => this.getBulkActionClickHandler('silence', ev)}
