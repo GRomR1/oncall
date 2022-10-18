@@ -273,7 +273,10 @@
           { "action": "grafana-oncall-app.maintenance:read" },
           { "action": "grafana-oncall-app.api-keys:read" },
           { "action": "grafana-oncall-app.notification-settings:read" },
+
           { "action": "grafana-oncall-app.user-settings:read" },
+          { "action": "grafana-oncall-app.user-settings:write" },
+
           { "action": "grafana-oncall-app.other-settings:read" }
         ],
         "hidden": false
