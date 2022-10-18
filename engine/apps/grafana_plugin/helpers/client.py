@@ -97,6 +97,15 @@ class GrafanaAPIClient(APIClient):
         data, _ = self.api_get(f"api/access-control/org/users/permissions?actionPrefix={ACTION_PREFIX}")
         return data
 
+    def user_has_plugins_install_permission(self, user_id: int) -> bool:
+        plugins_install_action = "plugins:install"
+        data, _ = self.api_post(f"api/access-control/user/{user_id}/evaluation", {
+            "action": plugins_install_action,
+        })
+        if not data:
+            return False
+        return data.get("-", {}).get(plugins_install_action, False)
+
     def get_users(self) -> List[GrafanaUserWithPermissions]:
         users, _ = self.api_get("api/org/users")
 

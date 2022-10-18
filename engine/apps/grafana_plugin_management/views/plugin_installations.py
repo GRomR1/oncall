@@ -5,7 +5,7 @@ from rest_framework.mixins import CreateModelMixin, ListModelMixin, RetrieveMode
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from apps.api.permissions import IsStaff
+from apps.api.permissions import IsPluginInstaller
 from apps.api.serializers.organization import PluginOrganizationSerializer
 from apps.grafana_plugin.helpers.client import GrafanaAPIClient
 from apps.user_management.models import Organization
@@ -21,7 +21,7 @@ class PluginInstallationsView(
     GenericViewSet,
 ):
     authentication_classes = [BasicAuthentication, SessionAuthentication]
-    permission_classes = (IsStaff,)
+    permission_classes = (IsPluginInstaller,)
 
     model = Organization
     serializer_class = PluginOrganizationSerializer
