@@ -64,7 +64,7 @@ class OpenAlertAppearanceDialogStep(
             raw_request_data = alert_group.alerts.first().message
 
         raw_request_data_chunks = [
-            raw_request_data[i: i + PAYLOAD_TEXT_SIZE] for i in range(0, len(raw_request_data), PAYLOAD_TEXT_SIZE)
+            raw_request_data[i : i + PAYLOAD_TEXT_SIZE] for i in range(0, len(raw_request_data), PAYLOAD_TEXT_SIZE)
         ]
         for idx, chunk in enumerate(raw_request_data_chunks):
             block = {

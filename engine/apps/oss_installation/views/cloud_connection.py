@@ -15,9 +15,8 @@ class CloudConnectionView(APIView):
     authentication_classes = (PluginAuthentication,)
     permission_classes = (IsAuthenticated, RBACPermission)
     rbac_permissions = {
-        # TODO: what permissions should go here?
-        "get": [],
-        "delete": [],
+        "get": [RBACPermission.Permissions.OTHER_SETTINGS_WRITE],
+        "delete": [RBACPermission.Permissions.OTHER_SETTINGS_WRITE],
     }
 
     def get(self, request):
