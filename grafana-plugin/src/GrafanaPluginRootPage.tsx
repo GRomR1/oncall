@@ -57,8 +57,8 @@ const RootWithLoader = observer((props: AppRootProps) => {
       text = '🚫 Plugin has not been initialized';
     } else if (!store.correctProvisioningForInstallation) {
       text = '🚫 Plugin could not be initialized due to provisioning error';
-    } else if (!store.correctRoleForInstallation) {
-      text = '🚫 Admin must sign on to setup OnCall before a Viewer can use it';
+    } else if (!store.currentUserHasPermissionForInstallation) {
+      text = '🚫 An admin (or a user with the "Plugin Maintainer" role granted) must sign on to setup OnCall before it can be used';
     } else if (!store.signupAllowedForPlugin) {
       text = '🚫 OnCall has temporarily disabled signup of new users. Please try again later.';
     } else if (store.initializationError) {

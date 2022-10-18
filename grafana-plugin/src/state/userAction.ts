@@ -35,6 +35,7 @@ export enum UserAction {
 
   // These are not oncall specific
   TeamsWrite = 'teams:write',
+  PluginsInstall = 'plugins:install',
 }
 
 export type Permissions = Record<UserAction, boolean>;
