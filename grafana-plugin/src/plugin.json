@@ -205,7 +205,7 @@
         ],
         "hidden": true
       },
-      "grants": ["GrafanaAdmin", "Admin"]
+      "grants": ["Grafana Admin", "Admin"]
     },
     {
       "role": {
@@ -252,7 +252,7 @@
         ],
         "hidden": false
       },
-      "grants": ["GrafanaAdmin", "Admin", "Editor"]
+      "grants": ["Grafana Admin", "Admin", "Editor"]
     },
     {
       "role": {
