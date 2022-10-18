@@ -132,6 +132,13 @@ export const pages: PageDefinition[] = [
     text: 'Env Variables',
     action: UserAction.OtherSettingsRead,
   },
+  {
+    component: CloudPage,
+    icon: 'cloud',
+    id: 'cloud',
+    text: 'Cloud',
+    action: UserAction.OtherSettingsWrite,
+  },
   // TODO: should the following pages have any permissions associated with them?
   {
     component: OrganizationLogPage2,
@@ -146,12 +153,6 @@ export const pages: PageDefinition[] = [
     id: 'migration-tool',
     text: 'Migrate From Amixr.IO',
     hideFromTabs: true,
-  },
-  {
-    component: CloudPage,
-    icon: 'cloud',
-    id: 'cloud',
-    text: 'Cloud',
   },
   {
     component: Test,
