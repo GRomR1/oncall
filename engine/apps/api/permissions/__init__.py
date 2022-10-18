@@ -2,7 +2,6 @@ import enum
 import typing
 
 from rest_framework import permissions
-from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.request import Request
 from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet, ViewSetMixin
@@ -176,16 +175,23 @@ class IsOwnerOrHasRBACPermissions(permissions.BasePermission):
         )
 
 
-class IsStaff(permissions.BasePermission):
-    STAFF_AUTH_CLASSES = [BasicAuthentication, SessionAuthentication]
+class IsPluginInstaller(permissions.BasePermission):
+    """
+        This permission class makes a call to Grafana's API to ask whether or not
+        the authenticated user has the `plugins:install` permission.
+
+        This permission class should only be used by the `grafana_plugin_management` app to
+        avoid a chicken-and-egg problem where we would need the `plugins:install` permission
+        to authorize syncing permissions, before they are already synced.
+    """
 
     def has_permission(self, request: Request, _view: ViewSet) -> bool:
+        from apps.grafana_plugin.helpers.client import GrafanaAPIClient
+
         user = request.user
-        if not any(isinstance(request._authenticator, x) for x in self.STAFF_AUTH_CLASSES):
-            return False
-        if user and user.is_authenticated:
-            return user.is_staff
-        return False
+        client = GrafanaAPIClient(api_url=user.organization.grafana_url,
+                                  api_token=user.organization.api_token)
+        return client.user_has_plugins_install_permission(user.user_id)
 
 
 RBACPermissionsAttribute = typing.Dict[str, typing.List[RBACPermission.Permissions]]
