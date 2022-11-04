@@ -30,6 +30,7 @@ import { UserStore } from 'models/user/user';
 import { UserGroupStore } from 'models/user_group/user_group';
 import { makeRequest } from 'network';
 import { NavMenuItem } from 'pages/routes';
+import { UserActions, isUserActionAllowed } from 'utils/authorization';
 
 import { AppFeature } from './features';
 import {
@@ -39,7 +40,6 @@ import {
   SYNC_STATUS_RETRY_LIMIT,
   syncStatusDelay,
 } from './plugin';
-import { UserAction } from './userAction';
 
 // ------ Dashboard ------ //
 
@@ -63,7 +63,7 @@ export class RootBaseStore {
   correctProvisioningForInstallation = true;
 
   @observable
-  correctRoleForInstallation = true;
+  currentUserHasPermissionForInstallation = true;
 
   @observable
   signupAllowedForPlugin = true;
@@ -143,15 +143,6 @@ export class RootBaseStore {
     ]);
   }
 
-  async getUserRole() {
-    const user = await getBackendSrv().get('/api/user');
-    const userRoles = await getBackendSrv().get('/api/user/orgs');
-    const userRole = userRoles.find(
-      (userRole: { name: string; orgId: number; role: string }) => userRole.orgId === user.orgId
-    );
-    return userRole.role;
-  }
-
   async finishSync(get_sync_response: any) {
     if (!get_sync_response.token_ok) {
       this.initializationError = 'OnCall was not able to connect back to this Grafana';
@@ -191,7 +182,7 @@ export class RootBaseStore {
     this.appLoading = true;
     this.pluginIsInitialized = true;
     this.correctProvisioningForInstallation = true;
-    this.correctRoleForInstallation = true;
+    this.currentUserHasPermissionForInstallation = true;
     this.signupAllowedForPlugin = true;
     this.initializationError = '';
     this.retrySync = false;
@@ -236,9 +227,9 @@ export class RootBaseStore {
         this.signupAllowedForPlugin = false;
         return;
       }
-      const userRole = await this.getUserRole();
-      if (userRole !== 'Admin') {
-        this.correctRoleForInstallation = false;
+
+      if (!this.isUserActionAllowed(UserActions.PluginsInstall)) {
+        this.currentUserHasPermissionForInstallation = false;
         return;
       }
       await installPlugin();
@@ -246,9 +237,7 @@ export class RootBaseStore {
     await this.waitForSyncStatus();
   }
 
-  isUserActionAllowed(action: UserAction) {
-    return this.userStore.currentUser && this.userStore.currentUser.permissions.includes(action);
-  }
+  isUserActionAllowed = isUserActionAllowed;
 
   hasFeature(feature: string | AppFeature) {
     // todo use AppFeature only

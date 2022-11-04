@@ -17,6 +17,7 @@ import { observer, Provider } from 'mobx-react';
 import Header from 'navbar/Header/Header';
 import LegacyNavTabsBar from 'navbar/LegacyNavTabsBar';
 
+import Unauthorized from 'components/Unauthorized';
 import DefaultPageLayout from 'containers/DefaultPageLayout/DefaultPageLayout';
 import logo from 'img/logo.svg';
 import { pages } from 'pages';
@@ -59,8 +60,9 @@ const RootWithLoader = observer((props: AppRootProps) => {
       text = '🚫 Plugin has not been initialized';
     } else if (!store.correctProvisioningForInstallation) {
       text = '🚫 Plugin could not be initialized due to provisioning error';
-    } else if (!store.correctRoleForInstallation) {
-      text = '🚫 Admin must sign on to setup OnCall before a Viewer can use it';
+    } else if (!store.currentUserHasPermissionForInstallation) {
+      text =
+        '🚫 An admin (or a user with the "Plugin Maintainer" role granted) must sign on to setup OnCall before it can be used';
     } else if (!store.signupAllowedForPlugin) {
       text = '🚫 OnCall has temporarily disabled signup of new users. Please try again later.';
     } else if (store.initializationError) {
@@ -138,6 +140,9 @@ export const Root = observer((props: AppRootProps) => {
     return null;
   }
 
+  const { action: pagePermissionAction } = pages[page];
+  const userHasAccess = pagePermissionAction ? store.isUserActionAllowed(pagePermissionAction) : true;
+
   return (
     <DefaultPageLayout {...props}>
       {!isTopNavbar() && (
@@ -156,7 +161,11 @@ export const Root = observer((props: AppRootProps) => {
           'u-position-relative'
         )}
       >
-        <Page {...props} path={pathWithoutLeadingSlash} store={store} />
+        {userHasAccess ? (
+          <Page {...props} path={pathWithoutLeadingSlash} store={store} />
+        ) : (
+          <Unauthorized requiredUserAction={pagePermissionAction} />
+        )}
       </div>
     </DefaultPageLayout>
   );
