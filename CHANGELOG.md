@@ -1,5 +1,11 @@
 # Change Log
 
+## [Unreleased]
+
+### Added
+
+- RBAC permission support
+
 ## v1.1.2 (2022-16-09)
 
 - Bug Fixes
